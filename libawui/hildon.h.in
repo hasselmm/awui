@@ -1,0 +1,10 @@
+/*** BEGIN file-header ***/
+#ifndef __AWUI_HILDON_H__
+#define __AWUI_HILDON_H__ 1
+
+/*** END file-header ***/
+
+/*** BEGIN file-tail ***/
+
+#endif /* __UI_HILDON_H__ */
+/*** END file-tail ***/

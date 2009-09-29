@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Name=Astro Wars
+#Comment=addr_ap_address_book_thumb
+Exec=@prefix@/bin/awui-hildon
+#StartupWMClass=awui
+#Icon=astrowars
+#X-Osso-Service=org.maemo.awui
+X-Text-Domain=awui

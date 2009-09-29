@@ -1,0 +1,40 @@
+/*** BEGIN file-header ***/
+#ifndef __AW_HILDON_ENUMS_H__
+#define __AW_HILDON_ENUMS_H__ 1
+
+#include <glib-object.h>
+
+G_BEGIN_DECLS
+
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+
+#include "@filename@"
+/*** END file-production ***/
+
+/*** BEGIN value-header ***/
+
+#define AW_TYPE_@ENUMSHORT@ (@enum_name@_get_type ())
+
+GType @enum_name@_get_type (void) G_GNUC_CONST;
+
+G_CONST_RETURN G@Type@Value *
+@enum_name@_from_name (const char *name) G_GNUC_PURE;
+
+G_CONST_RETURN G@Type@Value *
+@enum_name@_from_nick (const char *nick) G_GNUC_PURE;
+
+G_CONST_RETURN char *
+@enum_name@_get_name (@EnumName@ value) G_GNUC_PURE;
+
+G_CONST_RETURN char *
+@enum_name@_get_nick (@EnumName@ value) G_GNUC_PURE;
+/*** END value-header ***/
+
+/*** BEGIN file-tail ***/
+
+G_END_DECLS
+
+#endif /* __AW_HILDON_ENUMS_H__ */
+/*** END file-tail ***/

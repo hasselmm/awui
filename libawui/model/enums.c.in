@@ -1,0 +1,137 @@
+/*** BEGIN file-header ***/
+/**
+ * SECTION:enums
+ * @title: Enumerations
+ * @short_description: Enumeration helper functions
+ *
+ * This module provides some functions for handling enumeration types, in
+ * particular converting between enumeration values and string representations
+ */
+#include "enums.h"
+
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+
+/* @filename@ */
+/*** END file-production ***/
+
+/*** BEGIN value-header ***/
+
+static const G@Type@Value @enum_name@_values[] = {
+/*** END value-header ***/
+
+/*** BEGIN value-production ***/
+        { @VALUENAME@, "@VALUENAME@", "@valuenick@" },
+/*** END value-production ***/
+
+/*** BEGIN value-tail ***/
+        { 0, NULL, NULL },
+};
+
+GType
+@enum_name@_get_type (void)
+{
+        static GType type = 0;
+
+        if (G_UNLIKELY (!type)) {
+                type = g_@type@_register_static
+                        (g_intern_static_string ("@EnumName@"),
+                         @enum_name@_values);
+        }
+
+        return type;
+}
+
+/**
+ * @enum_name@_from_name:
+ * @name: the full name of a #@EnumName@ member
+ *
+ * Looks up the description of the #@EnumName@ member with that full @name.
+ *
+ * Return value: A #G@Type@Value when @name is valid, %NULL otherwise.
+ */
+G_CONST_RETURN G@Type@Value *
+@enum_name@_from_name (const char *name)
+{
+        unsigned i;
+
+        g_return_val_if_fail (NULL != name, NULL);
+
+        for (i = 0; @enum_name@_values[i].value_name; ++i) {
+                if (0 == g_ascii_strcasecmp (@enum_name@_values[i].value_name, name))
+                        return &@enum_name@_values[i];
+        }
+
+        return NULL;
+}
+
+/**
+ * @enum_name@_from_nick:
+ * @nick: the nick name of a #@EnumName@ member
+ *
+ * Looks up the description of the #@EnumName@ member with that @nick name.
+ *
+ * Return value: A #G@Type@Value when @nick is valid, %NULL otherwise.
+ */
+G_CONST_RETURN G@Type@Value *
+@enum_name@_from_nick (const char *nick)
+{
+        unsigned i;
+
+        g_return_val_if_fail (NULL != nick, NULL);
+
+        for (i = 0; @enum_name@_values[i].value_nick; ++i) {
+                if (0 == g_ascii_strcasecmp (@enum_name@_values[i].value_nick, nick))
+                        return &@enum_name@_values[i];
+        }
+
+        return NULL;
+}
+
+/**
+ * @enum_name@_get_name:
+ * @value: the #@EnumName@ member
+ *
+ * Retrieves the full name of a #@EnumName@ member.
+ *
+ * Return value: The full name for @value,
+ * or %NULL if there is no such member.
+ */
+G_CONST_RETURN char *
+@enum_name@_get_name (@EnumName@ value)
+{
+        unsigned i;
+
+        for (i = 0; @enum_name@_values[i].value_name; ++i) {
+                if (@enum_name@_values[i].value == value)
+                        return @enum_name@_values[i].value_name;
+        }
+
+        return NULL;
+}
+
+/**
+ * @enum_name@_get_nick:
+ * @value: the #@EnumName@ member
+ *
+ * Retrieves the nick name of a #@EnumName@ member.
+ *
+ * Return value: The nick name for @value,
+ * or %NULL if there is no such member.
+ */
+G_CONST_RETURN char *
+@enum_name@_get_nick (@EnumName@ value)
+{
+        unsigned i;
+
+        for (i = 0; @enum_name@_values[i].value_nick; ++i) {
+                if (@enum_name@_values[i].value == value)
+                        return @enum_name@_values[i].value_nick;
+        }
+
+        return NULL;
+}
+
+/*** END value-tail ***/
+

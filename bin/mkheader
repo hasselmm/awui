@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+print_section() {
+  begin="$1"
+  end="$2"
+
+  sed -ne "/$begin/{n;h;b};/$end/{x;p;q};H" "$template"
+}
+
+target="$1"
+template="$2"
+tmpfile="mkenum.$$"
+
+shift 2
+
+trap "rm -f '$tmpfile' && touch '$target-stamp'" EXIT
+
+print_header() {
+  print_section 'BEGIN file-header' 'END file-header'
+
+  while [ $# -gt 0 ]
+  do
+    if [ "$1" != "${1/.h//}" ]
+    then
+      echo "#include \"$1\""
+    fi
+
+    shift
+  done
+
+  print_section 'BEGIN file-tail' 'END file-tail'
+}
+
+print_header "$@" > "$tmpfile"
+cmp -s "$tmpfile" "$target" || mv "$tmpfile" "$target"

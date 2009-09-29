@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+rc=0
+
+find "$@" -type f -path '*.h' | while read f 
+do
+  guard="`echo "__${f//[\/.]/_}__" | tr [[:lower:]] [[:upper:]]`"
+  { grep -q "^#ifndef $guard\$" "$f" &&
+    grep -q "^#define $guard 1\$" "$f" &&
+    grep -q "^#endif /\\* $guard \\*/\$" "$f"; } || { echo "$f: $guard"; rc=1; }
+done
+
+exit $rc

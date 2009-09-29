@@ -1,0 +1,12 @@
+#!/bin/sh -e -v
+
+target="$1"
+template="$2"
+tmpfile="mkenum.$$"
+
+shift 2
+trap "rm -f '$tmpfile' && touch '$target-stamp'" EXIT
+
+@GLIB_MKENUMS@ --template "$template" "$@" > "$tmpfile"
+cmp -s "$tmpfile" "$target" || mv "$tmpfile" "$target"
+
