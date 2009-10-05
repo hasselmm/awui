@@ -679,7 +679,8 @@ aw_parser_read_fleets (const char  *data,
   GList *rows = NULL, *l, *n;
   int    start, end;
 
-  if (aw_parser_find_table (data, length, "Estimated Arrival", &start, &end, error))
+  if (aw_parser_find_table (data, length, "Estimated Arrival", &start, &end, error) ||
+      aw_parser_find_table (data, length, "Location", &start, &end, error))
     rows = aw_parser_read_table (data + start, end - start, 7, error);
 
   for (l = rows; l && (n = l->next, l); l = n)

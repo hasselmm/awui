@@ -420,6 +420,35 @@ test_parse_fleet2 (void)
   g_assert (NULL == list);
 }
 
+static void
+test_parse_fleet3 (void)
+{
+  GList  *list  = NULL;
+  GError *error = NULL;
+  char   *data  = NULL;
+  gsize   length;
+
+  if (g_file_get_contents ("tests/data/fleet3.html", &data, &length, &error))
+    list = aw_parser_read_fleets (data, length, &error);
+
+  g_free (data);
+
+  CHECK_ERROR (error);
+
+  g_assert_cmpint (8, ==, g_list_length (list));
+
+  CHECK_FLEET (NULL, NULL, 1081, "Alpha Alya",          6, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1082, "Alpha Vindemiatrix", 10, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1082, "Alpha Vindemiatrix", 11, 3, 0, 17, 0, 0, 0);
+  CHECK_FLEET (NULL, NULL, 1082, "Alpha Vindemiatrix", 12, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1081, "Alpha Alya",          7, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1081, "Alpha Alya",          9, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1081, "Alpha Alya",         10, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+  CHECK_FLEET (NULL, NULL, 1081, "Alpha Alya",         12, 0, 0,  1, 0, 0, AW_FLEET_SIEGING);
+
+  g_assert (NULL == list);
+}
+
 int
 main (int    argc,
       char **argv)
@@ -439,6 +468,7 @@ main (int    argc,
   g_test_add_func ("/parser/science/2", test_parse_science2);
   g_test_add_func ("/parser/fleet/1",   test_parse_fleet);
   g_test_add_func ("/parser/fleet/2",   test_parse_fleet2);
+  g_test_add_func ("/parser/fleet/3",   test_parse_fleet3);
 
   settings = aw_settings_new ();
   g_object_add_weak_pointer (G_OBJECT (settings), (gpointer) &settings);
