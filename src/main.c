@@ -244,16 +244,12 @@ merge_buildings (AwTreeView *view,
 
           if (p1)
             {
-              aw_planet_set_buildings (p0,
-                                       AW_BUILDING_FARM,
-                                       aw_planet_get_farm (p1),
-                                       AW_BUILDING_FACTORY,
-                                       aw_planet_get_factory (p1),
-                                       AW_BUILDING_CYBERNET,
-                                       aw_planet_get_cybernet (p1),
-                                       AW_BUILDING_LABORATORY,
-                                       aw_planet_get_laboratory (p1),
-                                       AW_BUILDING_INVALID);
+              aw_planet_set_building_levels (p0,
+                                             AW_ITEM_FARM, aw_planet_get_farm_level (p1),
+                                             AW_ITEM_FACTORY, aw_planet_get_factory_level (p1),
+                                             AW_ITEM_CYBERNET, aw_planet_get_cybernet_level (p1),
+                                             AW_ITEM_LABORATORY, aw_planet_get_laboratory_level (p1),
+                                             AW_ITEM_INVALID);
 
               aw_planet_set_population (p0, aw_planet_get_population (p1));
               aw_planet_set_production_points (p0, aw_planet_get_production_points (p1));
@@ -398,7 +394,7 @@ spend_all_response_cb (HildonPickerDialog *dialog,
   HildonTouchSelector *selector;
   GtkTreeModel        *model;
   GtkTreeIter          iter;
-  AwVesselType         vessel;
+  AwItemType           item;
 
   if (GTK_RESPONSE_OK == response)
     {
@@ -407,12 +403,21 @@ spend_all_response_cb (HildonPickerDialog *dialog,
 
       if (hildon_touch_selector_get_selected (selector, 0, &iter))
         {
-          gtk_tree_model_get (model, &iter, 1, &vessel, -1);
-          hildon_banner_show_information (view, NULL, aw_vessel_type_get_nick (vessel));
+          gtk_tree_model_get (model, &iter, 1, &item, -1);
+          hildon_banner_show_information (view, NULL, aw_item_type_get_nick (item));
         }
     }
 
   gtk_widget_destroy (GTK_WIDGET (dialog));
+}
+
+static void
+spend_all_append_item (GtkListStore *store,
+                       AwItemType    item)
+{
+  gtk_list_store_insert_with_values (store, NULL, -1,
+                                     0, aw_item_get_display_name (item, 0),
+                                     1, item, -1);
 }
 
 static void
@@ -423,20 +428,16 @@ spend_all_cb (GtkWidget *button,
   HildonTouchSelector *selector;
   GtkListStore        *store;
   GtkCellRenderer     *cell;
-  AwVesselType         vessel;
+  AwItemType           i;
 
   parent   = gtk_widget_get_ancestor (view, GTK_TYPE_WINDOW);
 
   store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_UINT);
 
-  for (vessel = AW_VESSEL_DESTROYER; vessel < AW_VESSEL_LAST; ++vessel)
-    gtk_list_store_insert_with_values (store, NULL, -1,
-                                       0, aw_vessel_get_display_name (vessel, 0),
-                                       1, vessel, -1);
+  for (i = AW_ITEM_VESSELS_FIRST; i <= AW_ITEM_VESSELS_LAST; ++i)
+    spend_all_append_item (store, i);
 
-  gtk_list_store_insert_with_values (store, NULL, -1,
-                                     0, _("Interstellar Trade"),
-                                     1, AW_VESSEL_INVALID, -1);
+  spend_all_append_item (store, AW_ITEM_TRADE);
 
   selector = HILDON_TOUCH_SELECTOR (hildon_touch_selector_new ());
   cell = g_object_new (GTK_TYPE_CELL_RENDERER_TEXT, "xalign", 0.5, NULL);

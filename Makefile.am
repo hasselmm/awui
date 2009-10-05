@@ -40,22 +40,20 @@ libawui_model_la_SOURCES = $(libawui_model_la_static_sources) \
 			   $(libaw_model_la_headers) \
 			   libawui/model/enums.c
 
-libawui_model_la_static_headers = libawui/model/building.h \
-				  libawui/model/fleet.h \
+libawui_model_la_static_headers = libawui/model/fleet.h \
+				  libawui/model/item.h \
 				  libawui/model/news.h \
-			 	  libawui/model/planet.h \
-			 	  libawui/model/settings.h \
-			 	  libawui/model/science.h \
-			 	  libawui/model/star.h \
-			 	  libawui/model/vessel.h
-libawui_model_la_static_sources = libawui/model/building.c \
-				  libawui/model/fleet.c \
-			 	  libawui/model/news.c \
-			 	  libawui/model/planet.c \
-			 	  libawui/model/settings.c \
-			 	  libawui/model/science.c \
-			 	  libawui/model/star.c \
-			 	  libawui/model/vessel.c
+				  libawui/model/planet.h \
+				  libawui/model/settings.h \
+				  libawui/model/science.h \
+				  libawui/model/star.h
+libawui_model_la_static_sources = libawui/model/fleet.c \
+				  libawui/model/item.c \
+				  libawui/model/news.c \
+				  libawui/model/planet.c \
+				  libawui/model/settings.c \
+				  libawui/model/science.c \
+				  libawui/model/star.c
 
 libawui/model.h: libawui/model.h-stamp
 libawui/model.h-stamp: libawui/model.h.in libawui/model/enums.h $(libawui_model_la_static_headers)

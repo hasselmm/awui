@@ -1,7 +1,7 @@
 #ifndef __AW_MODEL_FLEET_H__
 #define __AW_MODEL_FLEET_H__ 1
 
-#include "vessel.h"
+#include "item.h"
 
 #define AW_TYPE_FLEET (aw_fleet_get_type ())
 
@@ -23,8 +23,8 @@ aw_fleet_new               (const char    *arrival_time,
                             AwFleetFlags   flags);
 
 void
-aw_fleet_set_vessels       (AwFleet       *fleet,
-                            AwVesselType   first_vessel,
+aw_fleet_set_vessel_counts (AwFleet       *fleet,
+                            AwItemType     first_vessel,
                                            ...);
 
 AwFleetFlags
@@ -46,8 +46,8 @@ G_CONST_RETURN char *
 aw_fleet_get_planet_name   (const AwFleet *fleet);
 
 int
-aw_fleet_get_vessels       (const AwFleet *fleet,
-                            AwVesselType   type);
+aw_fleet_get_vessel_count  (const AwFleet *fleet,
+                            AwItemType     type);
 
 int
 aw_fleet_get_transports    (const AwFleet *fleet);

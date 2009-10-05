@@ -86,9 +86,8 @@ aw_planet_detail_view_init (AwPlanetDetailView *view)
 {
   GtkWidget      *table, *button;
   GtkSizeGroup   *title_group;
-  AwBuildingType  building;
-  AwVesselType    vessel;
   const char     *title;
+  AwItemType      i;
 
   view->priv = G_TYPE_INSTANCE_GET_PRIVATE (view, AW_TYPE_PLANET_DETAIL_VIEW,
                                             AwPlanetDetailViewPrivate);
@@ -96,20 +95,18 @@ aw_planet_detail_view_init (AwPlanetDetailView *view)
   table = gtk_table_new (5, 2, TRUE);
   title_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
-  for (building = 0; building < AW_BUILDING_LAST; ++building)
+  for (i = AW_ITEM_BUILDINGS_FIRST; i <= AW_ITEM_BUILDINGS_LAST; ++i)
     {
-      title  = aw_building_get_display_name (building, 0);
+      title  = aw_item_get_display_name (i, 0);
       button = aw_planet_detail_view_create_button (title_group, title);
-      gtk_table_attach_defaults (GTK_TABLE (table), button,
-                                 0, 1, building, building + 1);
+      gtk_table_attach_defaults (GTK_TABLE (table), button, 0, 1, i, i + 1);
     }
 
-  for (vessel = 0; vessel < AW_BUILDING_LAST; ++vessel)
+  for (i = AW_ITEM_VESSELS_FIRST; i <= AW_ITEM_VESSELS_LAST; ++i)
     {
-      title  = aw_vessel_get_display_name (vessel, 0);
+      title  = aw_item_get_display_name (i, 0);
       button = aw_planet_detail_view_create_button (title_group, title);
-      gtk_table_attach_defaults (GTK_TABLE (table), button,
-                                 1, 2, vessel, vessel + 1);
+      gtk_table_attach_defaults (GTK_TABLE (table), button, 1, 2, i, i + 1);
     }
 
   gtk_container_add (GTK_CONTAINER (view), table);

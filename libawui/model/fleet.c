@@ -11,7 +11,8 @@ struct _AwFleet {
   char         *planet_name;
   char         *system_name;
   int           system_id;
-  int           vessels[AW_VESSEL_LAST];
+  int           vessels[AW_ITEM_VESSELS_LAST -
+                        AW_ITEM_VESSELS_FIRST + 1];
 };
 
 static gpointer
@@ -74,24 +75,24 @@ aw_fleet_new (const char    *arrival_time,
 }
 
 void
-aw_fleet_set_vessels (AwFleet      *fleet,
-                      AwVesselType  first_type,
-                                    ...)
+aw_fleet_set_vessel_counts (AwFleet    *fleet,
+                            AwItemType  first_type,
+                                        ...)
 {
-  va_list      args;
-  AwVesselType type;
+  va_list    args;
+  AwItemType type;
 
   g_return_if_fail (NULL != fleet);
 
   va_start (args, first_type);
 
-  for (type = first_type; AW_VESSEL_INVALID != type; )
+  for (type = first_type; AW_ITEM_INVALID != type;
+       type = va_arg (args, AwItemType))
     {
-      g_return_if_fail (type >= 0);
-      g_return_if_fail (type < AW_VESSEL_LAST);
+      g_return_if_fail (aw_item_is_vessel (type));
 
+      type -= AW_ITEM_VESSELS_FIRST;
       fleet->vessels[type] = va_arg (args, int);
-      type = va_arg (args, AwVesselType);
     }
 
   va_end (args);
@@ -142,59 +143,57 @@ aw_fleet_get_flags (const AwFleet *fleet)
 /* ================================================================= */
 
 int
-aw_fleet_get_vessels (const AwFleet *fleet,
-                      AwVesselType   type)
+aw_fleet_get_vessel_count (const AwFleet *fleet,
+                           AwItemType     type)
 {
-  g_return_val_if_fail (NULL != fleet,         -1);
-  g_return_val_if_fail (type >= 0,             -1);
-  g_return_val_if_fail (type < AW_VESSEL_LAST, -1);
-  return fleet->vessels[type];
+  g_return_val_if_fail (NULL != fleet,            -1);
+  g_return_val_if_fail (aw_item_is_vessel (type), -1);
+  return fleet->vessels[type - AW_ITEM_VESSELS_FIRST];
 }
 
 int
 aw_fleet_get_transports (const AwFleet *fleet)
 {
-  g_return_val_if_fail (NULL != fleet, -1);
-  return fleet->vessels[AW_VESSEL_TRANSPORT];
+  return aw_fleet_get_vessel_count (fleet, AW_ITEM_TRANSPORT);
 }
 
 int
 aw_fleet_get_colonizers (const AwFleet *fleet)
 {
-  g_return_val_if_fail (NULL != fleet, -1);
-  return fleet->vessels[AW_VESSEL_COLONY_SHIP];
+  return aw_fleet_get_vessel_count (fleet, AW_ITEM_COLONY_SHIP);
 }
 
 int
 aw_fleet_get_destroyers (const AwFleet *fleet)
 {
-  g_return_val_if_fail (NULL != fleet, -1);
-  return fleet->vessels[AW_VESSEL_DESTROYER];
+  return aw_fleet_get_vessel_count (fleet, AW_ITEM_DESTROYER);
 }
 
 int
 aw_fleet_get_cruisers (const AwFleet *fleet)
 {
-  g_return_val_if_fail (NULL != fleet, -1);
-  return fleet->vessels[AW_VESSEL_CRUISER];
+  return aw_fleet_get_vessel_count (fleet, AW_ITEM_CRUISER);
 }
 
 int
 aw_fleet_get_battleships (const AwFleet *fleet)
 {
-  g_return_val_if_fail (NULL != fleet, -1);
-  return fleet->vessels[AW_VESSEL_BATTLESHIP];
+  return aw_fleet_get_vessel_count (fleet, AW_ITEM_BATTLESHIP);
 }
 
 int
 aw_fleet_get_attack_value (const AwFleet *fleet)
 {
-  int i, value = 0;
+  int        count, value = 0;
+  AwItemType type;
 
   g_return_val_if_fail (NULL != fleet, -1);
 
-  for (i = 0; i < G_N_ELEMENTS (fleet->vessels); ++i)
-    value += aw_vessel_get_attack_value (i) * fleet->vessels[i];
+  for (type = AW_ITEM_VESSELS_FIRST; type <= AW_ITEM_VESSELS_LAST; ++type)
+    {
+      count  = aw_fleet_get_vessel_count (fleet, type);
+      value += aw_item_get_attack_value (type, count);
+    }
 
   return value;
 }
@@ -202,12 +201,16 @@ aw_fleet_get_attack_value (const AwFleet *fleet)
 int
 aw_fleet_get_defense_value (const AwFleet *fleet)
 {
-  int i, value = 0;
+  int        count, value = 0;
+  AwItemType type;
 
   g_return_val_if_fail (NULL != fleet, -1);
 
-  for (i = 0; i < G_N_ELEMENTS (fleet->vessels); ++i)
-    value += aw_vessel_get_defense_value (i) * fleet->vessels[i];
+  for (type = AW_ITEM_VESSELS_FIRST; type <= AW_ITEM_VESSELS_LAST; ++type)
+    {
+      count  = aw_fleet_get_vessel_count (fleet, type);
+      value += aw_item_get_defense_value (type, count);
+    }
 
   return value;
 }

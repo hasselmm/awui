@@ -93,7 +93,7 @@ aw_system_view_detail_cell_cb (GtkTreeViewColumn *column,
     {
       text = g_strdup_printf ("%s: %d\n%s: %d",
                               _("Population"), aw_planet_get_population (planet),
-                              _("Starbase"), aw_planet_get_starbase (planet));
+                              _("Starbase"), aw_planet_get_starbase_level (planet));
     }
 
   g_object_set (cell, "text", text, NULL);

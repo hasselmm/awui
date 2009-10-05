@@ -310,8 +310,8 @@ aw_planet_view_industries_cell_cb (GtkTreeViewColumn *column,
                                    gpointer           user_data)
 {
   aw_planet_view_update_details (cell, model, iter,
-                                 _("Farm"), aw_planet_get_farm,
-                                 _("Factory"), aw_planet_get_factory);
+                                 _("Farm"), aw_planet_get_farm_level,
+                                 _("Factory"), aw_planet_get_factory_level);
 }
 
 static void
@@ -322,8 +322,8 @@ aw_planet_view_science_cell_cb (GtkTreeViewColumn *column,
                                 gpointer           user_data)
 {
   aw_planet_view_update_details (cell, model, iter,
-                                 _("Cybernet"), aw_planet_get_cybernet,
-                                 _("Laboratory"), aw_planet_get_laboratory);
+                                 _("Cybernet"), aw_planet_get_cybernet_level,
+                                 _("Laboratory"), aw_planet_get_laboratory_level);
 }
 
 static void

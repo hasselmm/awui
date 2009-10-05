@@ -75,11 +75,11 @@ G_STMT_START                                                                    
   g_assert_cmpstr  (aw_planet_get_owner             (item), ==, (owner));       \
   g_assert_cmpint  (aw_planet_get_population        (item), ==, (pop));         \
   g_assert_cmpint  (aw_planet_get_production_points (item), ==, (pp));          \
-  g_assert_cmpint  (aw_planet_get_farm              (item), ==, (farm));        \
-  g_assert_cmpint  (aw_planet_get_factory           (item), ==, (fab));         \
-  g_assert_cmpint  (aw_planet_get_cybernet          (item), ==, (net));         \
-  g_assert_cmpint  (aw_planet_get_laboratory        (item), ==, (lab));         \
-  g_assert_cmpint  (aw_planet_get_starbase          (item), ==, (sb));          \
+  g_assert_cmpint  (aw_planet_get_farm_level        (item), ==, (farm));        \
+  g_assert_cmpint  (aw_planet_get_factory_level     (item), ==, (fab));         \
+  g_assert_cmpint  (aw_planet_get_cybernet_level    (item), ==, (net));         \
+  g_assert_cmpint  (aw_planet_get_laboratory_level  (item), ==, (lab));         \
+  g_assert_cmpint  (aw_planet_get_starbase_level    (item), ==, (sb));          \
   g_assert_cmpuint (aw_planet_get_flags             (item), ==, (flags));       \
                                                                                 \
   aw_planet_unref (item);                                                       \

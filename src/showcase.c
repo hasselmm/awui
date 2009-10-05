@@ -257,12 +257,12 @@ update_buildings (GList *planets,
 {
   while (planets && buildings)
     {
-      aw_planet_set_buildings (planets->data,
-                               AW_BUILDING_FARM, aw_planet_get_farm (buildings->data),
-                               AW_BUILDING_FACTORY, aw_planet_get_factory (buildings->data),
-                               AW_BUILDING_CYBERNET, aw_planet_get_cybernet (buildings->data),
-                               AW_BUILDING_LABORATORY, aw_planet_get_laboratory (buildings->data),
-                               AW_BUILDING_INVALID);
+      aw_planet_set_building_levels (planets->data,
+                                     AW_ITEM_FARM, aw_planet_get_farm_level (buildings->data),
+                                     AW_ITEM_FACTORY, aw_planet_get_factory_level (buildings->data),
+                                     AW_ITEM_CYBERNET, aw_planet_get_cybernet_level (buildings->data),
+                                     AW_ITEM_LABORATORY, aw_planet_get_laboratory_level (buildings->data),
+                                     AW_ITEM_INVALID);
 
       aw_planet_set_production_points (planets->data, aw_planet_get_production_points (buildings->data));
       aw_planet_set_population (planets->data, aw_planet_get_population (buildings->data));

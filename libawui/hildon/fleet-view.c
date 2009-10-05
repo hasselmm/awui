@@ -247,20 +247,20 @@ aw_fleet_view_vessel_cell_cb (GtkTreeViewColumn *column,
                               GtkTreeIter       *iter,
                               gpointer           user_data)
 {
-  AwVesselType vessel1 = ((GPOINTER_TO_UINT (user_data) >> 0) & 255) - 1;
-  AwVesselType vessel2 = ((GPOINTER_TO_UINT (user_data) >> 8) & 255) - 1;
-  GString     *text    = g_string_new (NULL);
-  AwFleet     *fleet   = NULL;
-  int          amount;
+  AwItemType  vessel1 = ((GPOINTER_TO_UINT (user_data) >> 0) & 255) - 1;
+  AwItemType  vessel2 = ((GPOINTER_TO_UINT (user_data) >> 8) & 255) - 1;
+  GString    *text    = g_string_new (NULL);
+  AwFleet    *fleet   = NULL;
+  int         amount;
 
   gtk_tree_model_get (model, iter, 0, &fleet, -1);
 
   if (fleet)
     {
-      if (AW_VESSEL_INVALID != vessel1)
+      if (AW_ITEM_INVALID != vessel1)
         {
-          g_string_append (text, aw_vessel_get_display_name (vessel1, 0));
-          amount = aw_fleet_get_vessels (fleet, vessel1);
+          g_string_append (text, aw_item_get_display_name (vessel1, 0));
+          amount = aw_fleet_get_vessel_count (fleet, vessel1);
 
           if (amount > 0)
             g_string_append_printf (text, ": %d\n", amount);
@@ -268,10 +268,10 @@ aw_fleet_view_vessel_cell_cb (GtkTreeViewColumn *column,
             g_string_append_printf (text, ": -\n");
         }
 
-      if (AW_VESSEL_INVALID != vessel2)
+      if (AW_ITEM_INVALID != vessel2)
         {
-          g_string_append (text, aw_vessel_get_display_name (vessel2, 0));
-          amount = aw_fleet_get_vessels (fleet, vessel2);
+          g_string_append (text, aw_item_get_display_name (vessel2, 0));
+          amount = aw_fleet_get_vessel_count (fleet, vessel2);
 
           if (amount > 0)
             g_string_append_printf (text, ": %d", amount);
@@ -336,8 +336,8 @@ aw_fleet_view_create_columns (AwTreeView *view)
 
   gtk_tree_view_column_set_cell_data_func
     (aw_tree_view_append_secondary_column (view, cell), cell,
-     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_VESSEL_TRANSPORT,
-                                                   AW_VESSEL_COLONY_SHIP), NULL);
+     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_ITEM_TRANSPORT,
+                                                   AW_ITEM_COLONY_SHIP), NULL);
 
   /* === destroyer/cruiser column === */
 
@@ -345,8 +345,8 @@ aw_fleet_view_create_columns (AwTreeView *view)
 
   gtk_tree_view_column_set_cell_data_func
     (aw_tree_view_append_secondary_column (view, cell), cell,
-     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_VESSEL_DESTROYER,
-                                                   AW_VESSEL_CRUISER), NULL);
+     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_ITEM_DESTROYER,
+                                                   AW_ITEM_CRUISER), NULL);
 
   /* === battleship column === */
 
@@ -354,8 +354,8 @@ aw_fleet_view_create_columns (AwTreeView *view)
 
   gtk_tree_view_column_set_cell_data_func
     (aw_tree_view_append_secondary_column (view, cell), cell,
-     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_VESSEL_BATTLESHIP,
-                                                   AW_VESSEL_INVALID), NULL);
+     aw_fleet_view_vessel_cell_cb, AW_VESSEL_MASK (AW_ITEM_BATTLESHIP,
+                                                   AW_ITEM_INVALID), NULL);
 
   /* === combat value column === */
 

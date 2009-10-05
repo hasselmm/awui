@@ -418,9 +418,9 @@ aw_parser_read_system (const char  *data,
 
       l->data = aw_planet_new (-1, flags, name, owner, population);
 
-      aw_planet_set_buildings (l->data,
-                               AW_BUILDING_STARBASE, starbase,
-                               AW_BUILDING_INVALID);
+      aw_planet_set_building_levels (l->data,
+                                     AW_ITEM_STARBASE, starbase,
+                                     AW_ITEM_INVALID);
 
       g_strfreev (cells);
       g_free (owner);
@@ -471,9 +471,9 @@ aw_parser_read_planets (const char  *data,
         flags |= AW_PLANET_SIEGED;
 
       l->data = aw_planet_new (id, flags, name, username, population);
-      aw_planet_set_buildings (l->data, AW_BUILDING_FARM, gph - 1,
-                               AW_BUILDING_FACTORY, pph - population,
-                               AW_BUILDING_INVALID);
+      aw_planet_set_building_levels (l->data, AW_ITEM_FARM, gph - 1,
+                                     AW_ITEM_FACTORY, pph - population,
+                                     AW_ITEM_INVALID);
       aw_planet_set_production_points (l->data, production_points);
 
       g_strfreev (cells);
@@ -530,12 +530,12 @@ aw_parser_read_buildings (const char  *data,
 
           l->data = aw_planet_new (id, flags, name, username, population);
 
-          aw_planet_set_buildings (l->data,
-                                   AW_BUILDING_FARM,       farm,
-                                   AW_BUILDING_FACTORY,    factory,
-                                   AW_BUILDING_CYBERNET,   cybernet,
-                                   AW_BUILDING_LABORATORY, laboratory,
-                                   AW_BUILDING_INVALID);
+          aw_planet_set_building_levels (l->data,
+                                         AW_ITEM_FARM,       farm,
+                                         AW_ITEM_FACTORY,    factory,
+                                         AW_ITEM_CYBERNET,   cybernet,
+                                         AW_ITEM_LABORATORY, laboratory,
+                                         AW_ITEM_INVALID);
 
           aw_planet_set_production_points (l->data, production_points);
 
@@ -716,13 +716,13 @@ aw_parser_read_fleets (const char  *data,
                               date_time ? date_time[1] : NULL,
                               system_id, planet_name, flags);
 
-      aw_fleet_set_vessels (l->data,
-                            AW_VESSEL_TRANSPORT,   transports,
-                            AW_VESSEL_COLONY_SHIP, colony_ships,
-                            AW_VESSEL_DESTROYER,   destroyers,
-                            AW_VESSEL_CRUISER,     cruisers,
-                            AW_VESSEL_BATTLESHIP,  battleships,
-                            AW_VESSEL_INVALID);
+      aw_fleet_set_vessel_counts (l->data,
+                                  AW_ITEM_TRANSPORT,   transports,
+                                  AW_ITEM_COLONY_SHIP, colony_ships,
+                                  AW_ITEM_DESTROYER,   destroyers,
+                                  AW_ITEM_CRUISER,     cruisers,
+                                  AW_ITEM_BATTLESHIP,  battleships,
+                                  AW_ITEM_INVALID);
 
       if (date_time)
         g_strfreev (date_time);

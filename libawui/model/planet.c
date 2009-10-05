@@ -11,7 +11,8 @@ struct _AwPlanet {
   char          *owner;
   AwPlanetFlags  flags;
 
-  int            buildings[AW_BUILDING_LAST];
+  int            building_levels[AW_ITEM_BUILDINGS_LAST -
+                                 AW_ITEM_BUILDINGS_FIRST + 1];
   int            production_points;
   int            population;
 };
@@ -60,31 +61,31 @@ aw_planet_new (int            id,
   planet->population        = population;
   planet->production_points = -1;
 
-  for (i = 0; i < G_N_ELEMENTS (planet->buildings); ++i)
-    planet->buildings[i] = -1;
+  for (i = 0; i < G_N_ELEMENTS (planet->building_levels); ++i)
+    planet->building_levels[i] = -1;
 
   return planet;
 }
 
 void
-aw_planet_set_buildings (AwPlanet       *planet,
-                         AwBuildingType  first_type,
-                                         ...)
+aw_planet_set_building_levels (AwPlanet   *planet,
+                               AwItemType  first_type,
+                                           ...)
 {
-  va_list        args;
-  AwBuildingType type;
+  va_list    args;
+  AwItemType type;
 
   g_return_if_fail (NULL != planet);
 
   va_start (args, first_type);
 
-  for (type = first_type; AW_BUILDING_INVALID != type; )
+  for (type = first_type; AW_ITEM_INVALID != type;
+       type = va_arg (args, AwItemType))
     {
-      g_return_if_fail (type >= 0);
-      g_return_if_fail (type < AW_BUILDING_LAST);
+      g_return_if_fail (aw_item_is_building (type));
 
-      planet->buildings[type] = va_arg (args, int);
-      type = va_arg (args, AwBuildingType);
+      type -= AW_ITEM_BUILDINGS_FIRST;
+      planet->building_levels[type] = va_arg (args, int);
     }
 
   va_end (args);
@@ -151,46 +152,49 @@ aw_planet_get_production_points (const AwPlanet *planet)
 }
 
 int
-aw_planet_get_farm (const AwPlanet *planet)
+aw_planet_get_building_level (const AwPlanet *planet,
+                              AwItemType      type)
 {
-  g_return_val_if_fail (NULL != planet, -1);
-  return planet->buildings[AW_BUILDING_FARM];
+  g_return_val_if_fail (NULL != planet,             -1);
+  g_return_val_if_fail (aw_item_is_building (type), -1);
+  return planet->building_levels[type - AW_ITEM_BUILDINGS_FIRST];
 }
 
 int
-aw_planet_get_factory (const AwPlanet *planet)
+aw_planet_get_farm_level (const AwPlanet *planet)
 {
-  g_return_val_if_fail (NULL != planet, -1);
-  return planet->buildings[AW_BUILDING_FACTORY];
+  return aw_planet_get_building_level (planet, AW_ITEM_FARM);
 }
 
 int
-aw_planet_get_cybernet (const AwPlanet *planet)
+aw_planet_get_factory_level (const AwPlanet *planet)
 {
-  g_return_val_if_fail (NULL != planet, -1);
-  return planet->buildings[AW_BUILDING_CYBERNET];
+  return aw_planet_get_building_level (planet, AW_ITEM_FACTORY);
 }
 
 int
-aw_planet_get_laboratory (const AwPlanet *planet)
+aw_planet_get_cybernet_level (const AwPlanet *planet)
 {
-  g_return_val_if_fail (NULL != planet, -1);
-  return planet->buildings[AW_BUILDING_LABORATORY];
+  return aw_planet_get_building_level (planet, AW_ITEM_CYBERNET);
 }
 
 int
-aw_planet_get_starbase (const AwPlanet *planet)
+aw_planet_get_laboratory_level (const AwPlanet *planet)
 {
-  g_return_val_if_fail (NULL != planet, -1);
-  return planet->buildings[AW_BUILDING_STARBASE];
+  return aw_planet_get_building_level (planet, AW_ITEM_LABORATORY);
+}
+
+int
+aw_planet_get_starbase_level (const AwPlanet *planet)
+{
+  return aw_planet_get_building_level (planet, AW_ITEM_STARBASE);
 }
 
 int
 aw_planet_get_growth_per_hour (const AwPlanet *planet)
 {
   g_return_val_if_fail (NULL != planet, -1);
-
-  return MAX (0, planet->buildings[AW_BUILDING_FARM]) + 1;
+  return MAX (0, aw_planet_get_farm_level (planet) + 1);
 }
 
 int
@@ -198,8 +202,8 @@ aw_planet_get_production_per_hour (const AwPlanet *planet)
 {
   g_return_val_if_fail (NULL != planet, -1);
 
-  return MAX (0, planet->population) +
-         MAX (0, planet->buildings[AW_BUILDING_FACTORY]);
+  return MAX (0, aw_planet_get_population (planet)) +
+         MAX (0, aw_planet_get_factory_level (planet));
 }
 
 /* ================================================================= */
@@ -308,9 +312,9 @@ aw_planet_compare_by_starbase (AwPlanet *planet_a,
   int a = 0, b = 0;
 
   if (planet_a)
-    a = aw_planet_get_starbase (planet_a);
+    a = aw_planet_get_starbase_level (planet_a);
   if (planet_b)
-    b = aw_planet_get_starbase (planet_b);
+    b = aw_planet_get_starbase_level (planet_b);
 
   if (a != b)
     return (a < b ? +1 : -1);

@@ -1,7 +1,7 @@
 #ifndef __AW_MODEL_PLANET_H__
 #define __AW_MODEL_PLANET_H__ 1
 
-#include "building.h"
+#include "item.h"
 
 #define AW_TYPE_PLANET (aw_planet_get_type ())
 
@@ -26,8 +26,8 @@ aw_planet_new                     (int             id,
                                    int             population);
 
 void
-aw_planet_set_buildings           (AwPlanet       *planet,
-                                   AwBuildingType  first_type,
+aw_planet_set_building_levels     (AwPlanet       *planet,
+                                   AwItemType      first_type,
                                                    ...);
 
 void
@@ -57,19 +57,23 @@ int
 aw_planet_get_production_points   (const AwPlanet *planet);
 
 int
-aw_planet_get_farm                (const AwPlanet *planet);
+aw_planet_get_building_level      (const AwPlanet *planet,
+                                   AwItemType      type);
 
 int
-aw_planet_get_factory             (const AwPlanet *planet);
+aw_planet_get_farm_level          (const AwPlanet *planet);
 
 int
-aw_planet_get_cybernet            (const AwPlanet *planet);
+aw_planet_get_factory_level       (const AwPlanet *planet);
 
 int
-aw_planet_get_laboratory          (const AwPlanet *planet);
+aw_planet_get_cybernet_level      (const AwPlanet *planet);
 
 int
-aw_planet_get_starbase            (const AwPlanet *planet);
+aw_planet_get_laboratory_level    (const AwPlanet *planet);
+
+int
+aw_planet_get_starbase_level      (const AwPlanet *planet);
 
 int
 aw_planet_get_growth_per_hour     (const AwPlanet *planet);
