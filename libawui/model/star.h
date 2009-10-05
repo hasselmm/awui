@@ -1,7 +1,7 @@
 #ifndef __AW_MODEL_STAR_H__
 #define __AW_MODEL_STAR_H__ 1
 
-#include <glib-object.h>
+#include "point.h"
 
 #define AW_TYPE_STAR (aw_star_get_type ())
 
@@ -35,6 +35,9 @@ aw_star_get_x            (const AwStar *star);
 int
 aw_star_get_y            (const AwStar *star);
 
+G_CONST_RETURN AwPoint *
+aw_star_get_location     (const AwStar *star);
+
 AwStar *
 aw_star_ref              (AwStar       *star);
 
@@ -57,7 +60,7 @@ aw_star_compare_by_level (AwStar       *star_a,
                           AwStar       *star_b);
 
 double
-aw_star_get_distance     (AwStar       *star_a,
-                          AwStar       *star_b);
+aw_star_get_distance     (const AwStar *star_a,
+                          const AwStar *star_b);
 
 #endif /* __AW_MODEL_STAR_H__ */

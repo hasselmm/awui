@@ -1,14 +1,11 @@
 #include "config.h"
 #include "star.h"
 
-#include <math.h>
-
 struct _AwStar {
   int           ref_count;
   int           id;
   char         *name;
-  int           x;
-  int           y;
+  AwPoint       location;
   int           level;
 };
 
@@ -48,12 +45,12 @@ aw_star_new (int         id,
 
   star = g_slice_new (AwStar);
 
-  star->id        = id;
-  star->name      = g_strdup (name);
-  star->level     = level;
-  star->x         = x;
-  star->y         = y;
-  star->ref_count = 1;
+  star->id         = id;
+  star->name       = g_strdup (name);
+  star->level      = level;
+  star->location.x = x;
+  star->location.y = y;
+  star->ref_count  = 1;
 
   return star;
 }
@@ -85,14 +82,21 @@ int
 aw_star_get_x (const AwStar *star)
 {
   g_return_val_if_fail (NULL != star, 0);
-  return star->x;
+  return star->location.x;
 }
 
 int
 aw_star_get_y (const AwStar *star)
 {
   g_return_val_if_fail (NULL != star, 0);
-  return star->y;
+  return star->location.y;
+}
+
+G_CONST_RETURN AwPoint *
+aw_star_get_location (const AwStar *star)
+{
+  g_return_val_if_fail (NULL != star, NULL);
+  return &star->location;
 }
 
 /* ================================================================= */
@@ -177,16 +181,17 @@ aw_star_compare_by_level (AwStar *star_a,
 }
 
 double
-aw_star_get_distance (AwStar *star_a,
-                      AwStar *star_b)
+aw_star_get_distance (const AwStar *star_a,
+                      const AwStar *star_b)
 {
-  const int xa = (star_a ? aw_star_get_x (star_a) : 0);
-  const int ya = (star_a ? aw_star_get_y (star_a) : 0);
-  const int xb = (star_b ? aw_star_get_x (star_b) : 0);
-  const int yb = (star_b ? aw_star_get_y (star_b) : 0);
-  const int dx = (xa - xb);
-  const int dy = (ya - yb);
+  const AwPoint *a = NULL;
+  const AwPoint *b = NULL;
 
-  return sqrt (dx * dx + dy * dy);
+  if (star_a)
+    a = aw_star_get_location (star_a);
+  if (star_b)
+    b = aw_star_get_location (star_b);
+
+  return aw_point_get_distance (a, b);
 }
 
