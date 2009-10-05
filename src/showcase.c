@@ -560,6 +560,38 @@ header_cb (GtkTreeModel  *model,
   return TRUE;
 }
 
+static void
+run_demo (GtkTreeView *view,
+          const char  *demo)
+{
+  GtkTreeModel   *model;
+  GtkTreeIter     iter;
+  char           *title;
+  AwDemoCallback  callback;
+  gpointer        user_data;
+
+  model = gtk_tree_view_get_model (view);
+
+  if (gtk_tree_model_get_iter_first (model, &iter))
+    do
+      {
+        gtk_tree_model_get (model, &iter,
+                            COLUMM_TITLE, &title,
+                            COLUMM_CALLBACK, &callback,
+                            COLUMM_USER_DATA, &user_data, -1);
+
+        if (!g_strcmp0 (demo, title) && callback)
+          {
+            callback (NULL, title, user_data);
+            g_free (title);
+            break;
+          }
+
+        g_free (title);
+      }
+    while (gtk_tree_model_iter_next (model, &iter));
+}
+
 int
 main (int    argc,
       char **argv)
@@ -625,6 +657,9 @@ main (int    argc,
   g_object_add_weak_pointer (G_OBJECT (settings), (gpointer) &settings);
   g_object_add_weak_pointer (G_OBJECT (window), (gpointer) &window);
   g_object_add_weak_pointer (G_OBJECT (store), (gpointer) &store);
+
+  if (argc > 1)
+    run_demo (GTK_TREE_VIEW (view), argv[1]);
 
   gtk_main ();
 
