@@ -228,11 +228,14 @@ aw_session_message_cb (SoupSession *client,
 {
   GObject   *source  = g_async_result_get_source_object (result);
   AwSession *session = AW_SESSION (source);
+  char      *uri;
 
 AW_DEBUG_REF_COUNT (session);
 
-  g_print ("%s: %d %s\n", G_STRFUNC,
-           message->status_code, message->reason_phrase);
+  uri = soup_uri_to_string (soup_message_get_uri (message), FALSE);
+  g_print ("%s: %d %s (%s %s)\n", G_STRFUNC, message->status_code,
+           message->reason_phrase, message->method, uri);
+  g_free (uri);
 
   if (SOUP_STATUS_OK != message->status_code)
     {
@@ -339,7 +342,6 @@ aw_session_fetch_async (AwSession            *session,
   uri = g_string_new (session->base_uri);
   g_string_append_vprintf (uri, path, args);
   message = soup_message_new (SOUP_METHOD_GET, uri->str);
-  g_print ("%s: %s\n", G_STRFUNC, uri->str);
   g_string_free (uri, TRUE);
   va_end (args);
 
@@ -373,7 +375,6 @@ aw_session_post_async (AwSession            *session,
 
   uri = g_strconcat (session->base_uri, path, NULL);
   message = soup_message_new (SOUP_METHOD_POST, uri);
-  g_print ("%s: %s\n", G_STRFUNC, uri);
   g_free (uri);
 
   soup_message_set_request (message,
