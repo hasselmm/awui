@@ -750,8 +750,9 @@ aw_session_fetch_science_finish (AwSession       *session,
                                  AwScienceStats  *statistics,
                                  GError         **error)
 {
-  GList       *sciences = NULL;
+  GList       *sciences = NULL, *l;
   SoupMessage *message;
+  AwProfile   *profile;
 
   message = aw_session_finish_message (session, result,
                                        aw_session_fetch_science_async,
@@ -761,6 +762,16 @@ aw_session_fetch_science_finish (AwSession       *session,
     sciences = aw_parser_read_sciences (message->response_body->data,
                                         message->response_body->length,
                                         current, statistics, error);
+
+  profile = aw_profile_get_self ();
+
+  for (l = sciences; l; l = l->next)
+    {
+      aw_profile_set_level (profile, aw_science_get_id (l->data),
+                            aw_science_get_level (l->data));
+    }
+
+  g_object_unref (profile);
 
   return sciences;
 }
