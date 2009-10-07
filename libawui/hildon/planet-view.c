@@ -83,7 +83,14 @@ aw_planet_view_compare (GtkTreeModel        *model,
   gtk_tree_model_get (model, iter_a, 0, &planet_a, -1);
   gtk_tree_model_get (model, iter_b, 0, &planet_b, -1);
 
-  result = compare_func (planet_a, planet_b);
+  if (planet_a == planet_b)
+    result =  0;
+  else if (!planet_a)
+    result = +1;
+  else if (!planet_b)
+    result = -1;
+  else
+    result = compare_func (planet_a, planet_b);
 
   aw_planet_unref (planet_b);
   aw_planet_unref (planet_a);
@@ -170,10 +177,10 @@ aw_planet_view_get_filters (AwTreeView *view)
     const char *label;
     void      (*callback) ();
   } filters[] = {
-      { _("Name"),       aw_planet_view_sort_by_name_cb       },
-      { _("Population"), aw_planet_view_sort_by_population_cb },
-      { _("Starbase"),   aw_planet_view_sort_by_starbase_cb   },
-      { _("Owner"),      aw_planet_view_sort_by_owner_cb      },
+      { _("Name"),     aw_planet_view_sort_by_name_cb       },
+      { _("Size"),     aw_planet_view_sort_by_population_cb },
+      { _("Starbase"), aw_planet_view_sort_by_starbase_cb   },
+      { _("Owner"),    aw_planet_view_sort_by_owner_cb      },
   };
 
   gpointer button = NULL;

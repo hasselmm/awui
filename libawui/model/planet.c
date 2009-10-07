@@ -336,8 +336,16 @@ aw_planet_compare_by_owner (AwPlanet *planet_a,
   if (planet_b)
     owner_b = aw_planet_get_owner (planet_b);
 
-  if (0 != (result = g_strcmp0 (owner_a, owner_b)))
-    return result;
+  if (owner_a != owner_b)
+    {
+      if (!owner_a)
+        return +1;
+      if (!owner_b)
+        return -1;
+
+      if (0 != (result = strcmp (owner_a, owner_b)))
+        return result;
+    }
 
   return aw_planet_compare_by_name (planet_a, planet_b);
 }
