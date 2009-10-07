@@ -642,7 +642,7 @@ aw_parser_read_sciences (const char      *data,
       const char  *strval;
 
       if (!aw_parser_find_element_text (cells[2], -1, &start, &end) ||
-          g_strncasecmp (aw_science_id_get_nick (id), cells[2] + start, end - start))
+          g_ascii_strncasecmp (aw_science_id_get_nick (id), cells[2] + start, end - start))
         break;
 
       if (NULL != (strval = strstr (cells[8], "value=")))
