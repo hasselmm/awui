@@ -387,7 +387,9 @@ spend_all_response_cb (AwSpendAllDialog *dialog,
   if (GTK_RESPONSE_OK == response)
     {
       item = aw_spend_all_dialog_get_selected_item (dialog);
-      hildon_banner_show_information (view, NULL, aw_item_type_get_nick (item));
+      aw_session_spend_all_async (aw_session_get_singleton (),
+                                  item, NULL, NULL);
+      // FIXME: refresh planet view
     }
 
   gtk_widget_destroy (GTK_WIDGET (dialog));

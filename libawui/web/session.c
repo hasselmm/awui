@@ -797,52 +797,6 @@ aw_session_fetch_fleets_finish (AwSession     *session,
 }
 
 void
-aw_session_select_science_async (AwSession          *session,
-                                 AwScienceId         science_id,
-                                 GAsyncReadyCallback callback,
-                                 gpointer            user_data)
-{
-  const char *field_value = NULL;
-
-  g_return_if_fail (AW_IS_SESSION (session));
-
-  switch (science_id)
-    {
-    case AW_SCIENCE_BIOLOGY:
-      field_value = "f_bio";
-      break;
-    case AW_SCIENCE_ECONOMY:
-      field_value = "f_eco";
-      break;
-    case AW_SCIENCE_ENERGY:
-      field_value = "f_energy";
-      break;
-    case AW_SCIENCE_MATHEMATICS:
-      field_value = "f_mathematics";
-      break;
-    case AW_SCIENCE_PHYSICS:
-      field_value = "f_physics";
-      break;
-    case AW_SCIENCE_SOCIAL:
-      field_value = "f_social";
-      break;
-    case AW_SCIENCE_CULTURE:
-    case AW_SCIENCE_WARFARE:
-    case AW_SCIENCE_OVERALL:
-    case AW_SCIENCE_INVALID:
-    case AW_SCIENCE_LAST:
-      break;
-    }
-
-  g_return_if_fail (NULL != field_value);
-
-  aw_session_post_async (session, callback, user_data,
-                         aw_session_select_science_async,
-                         "/0/Science/submit.php",
-                         "science", field_value, NULL);
-}
-
-void
 aw_session_fetch_profile_async (AwSession           *session,
                                 int                  profile_id,
                                 GAsyncReadyCallback  callback,
@@ -901,3 +855,94 @@ aw_session_fetch_profile_finish (AwSession     *session,
 
   return profile;
 }
+
+void
+aw_session_select_science_async (AwSession          *session,
+                                 AwScienceId         science_id,
+                                 GAsyncReadyCallback callback,
+                                 gpointer            user_data)
+{
+  const char *field_value = NULL;
+
+  g_return_if_fail (AW_IS_SESSION (session));
+
+  switch (science_id)
+    {
+    case AW_SCIENCE_BIOLOGY:
+      field_value = "f_bio";
+      break;
+    case AW_SCIENCE_ECONOMY:
+      field_value = "f_eco";
+      break;
+    case AW_SCIENCE_ENERGY:
+      field_value = "f_energy";
+      break;
+    case AW_SCIENCE_MATHEMATICS:
+      field_value = "f_mathematics";
+      break;
+    case AW_SCIENCE_PHYSICS:
+      field_value = "f_physics";
+      break;
+    case AW_SCIENCE_SOCIAL:
+      field_value = "f_social";
+      break;
+    case AW_SCIENCE_CULTURE:
+    case AW_SCIENCE_WARFARE:
+    case AW_SCIENCE_OVERALL:
+    case AW_SCIENCE_INVALID:
+    case AW_SCIENCE_LAST:
+      break;
+    }
+
+  g_return_if_fail (NULL != field_value);
+
+  aw_session_post_async (session, callback, user_data,
+                         aw_session_select_science_async,
+                         "/0/Science/submit.php",
+                         "science", field_value, NULL);
+}
+
+void
+aw_session_spend_all_async (AwSession          *session,
+                            AwItemType          item,
+                            GAsyncReadyCallback callback,
+                            gpointer            user_data)
+{
+  const char *field_value = NULL;
+
+  g_return_if_fail (AW_IS_SESSION (session));
+
+  switch (item)
+    {
+    case AW_ITEM_DESTROYER:
+      field_value = "destroyer";
+      break;
+    case AW_ITEM_CRUISER:
+      field_value = "cruiser";
+      break;
+    case AW_ITEM_BATTLESHIP:
+      field_value = "battleship";
+      break;
+    case AW_ITEM_TRADE:
+      field_value = "trade";
+      break;
+    case AW_ITEM_FARM:
+    case AW_ITEM_FACTORY:
+    case AW_ITEM_CYBERNET:
+    case AW_ITEM_LABORATORY:
+    case AW_ITEM_STARBASE:
+    case AW_ITEM_TRANSPORT:
+    case AW_ITEM_COLONY_SHIP:
+    case AW_ITEM_INVALID:
+    case AW_ITEM_LAST:
+      break;
+    }
+
+  g_return_if_fail (NULL != field_value);
+
+  aw_session_post_async (session, callback, user_data,
+                         aw_session_select_science_async,
+                         "/0/Planets/submitall.php",
+                         "produktion", field_value, NULL);
+}
+

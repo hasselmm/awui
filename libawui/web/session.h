@@ -157,4 +157,10 @@ aw_session_select_science_async   (AwSession          *session,
                                    GAsyncReadyCallback callback,
                                    gpointer            user_data);
 
+void
+aw_session_spend_all_async        (AwSession          *session,
+                                   AwItemType          item,
+                                   GAsyncReadyCallback callback,
+                                   gpointer            user_data);
+
 #endif /* __AW_WEB_SESSION_H__ */
