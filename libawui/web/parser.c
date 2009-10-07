@@ -34,7 +34,7 @@ aw_parser_find_table (const char  *data,
   regex = g_regex_new (pattern, G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
 
   if (!regex ||
-      !g_regex_match_full (regex, data, length, 0, 0, &info, NULL) ||
+      !g_regex_match_full (regex, data, length, 0, 0, &info, error) ||
       !g_match_info_fetch_pos (info, 1, start, end))
     goto out;
 
@@ -169,7 +169,7 @@ aw_parser_find_links (const char  *data,
                        G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
 
   if (!regex ||
-      !g_regex_match_full (regex, data, length, 0, 0, &info, NULL))
+      !g_regex_match_full (regex, data, length, 0, 0, &info, error))
     goto out;
 
   links = g_ptr_array_new ();
@@ -345,7 +345,7 @@ aw_parser_read_map (const char  *data,
                        "ID:(\\d+)\\s+?Level: (\\d+)\"",
                        G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
 
-  if (!regex || !g_regex_match_full (regex, data, length, 0, 0, &info, NULL))
+  if (!regex || !g_regex_match_full (regex, data, length, 0, 0, &info, error))
     goto out;
 
   do
@@ -575,7 +575,7 @@ aw_parser_read_science_stats (const char  *data,
 
   regex = g_regex_new (pattern, G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
 
-  if (!regex || !g_regex_match_full (regex, data, length, 0, 0, &info, NULL))
+  if (!regex || !g_regex_match_full (regex, data, length, 0, 0, &info, error))
     goto out;
 
   text = g_match_info_fetch (info, 1);
