@@ -99,14 +99,18 @@ aw_planet_detail_view_init (AwPlanetDetailView *view)
     {
       title  = aw_item_get_display_name (i, 0);
       button = aw_planet_detail_view_create_button (title_group, title);
-      gtk_table_attach_defaults (GTK_TABLE (table), button, 0, 1, i, i + 1);
+      gtk_table_attach_defaults (GTK_TABLE (table), button, 0, 1,
+                                 i - AW_ITEM_BUILDINGS_FIRST,
+                                 i - AW_ITEM_BUILDINGS_FIRST + 1);
     }
 
   for (i = AW_ITEM_VESSELS_FIRST; i <= AW_ITEM_VESSELS_LAST; ++i)
     {
       title  = aw_item_get_display_name (i, 0);
       button = aw_planet_detail_view_create_button (title_group, title);
-      gtk_table_attach_defaults (GTK_TABLE (table), button, 1, 2, i, i + 1);
+      gtk_table_attach_defaults (GTK_TABLE (table), button, 1, 2,
+                                 i - AW_ITEM_VESSELS_FIRST,
+                                 i - AW_ITEM_VESSELS_FIRST + 1);
     }
 
   gtk_container_add (GTK_CONTAINER (view), table);
