@@ -378,71 +378,37 @@ fetch_science_cb (GObject      *source,
 }
 
 static void
-spend_all_response_cb (HildonPickerDialog *dialog,
-                       int                 response,
-                       GtkWidget          *view)
+spend_all_response_cb (AwSpendAllDialog *dialog,
+                       int               response,
+                       GtkWidget        *view)
 {
-  HildonTouchSelector *selector;
-  GtkTreeModel        *model;
-  GtkTreeIter          iter;
-  AwItemType           item;
+  AwItemType item;
 
   if (GTK_RESPONSE_OK == response)
     {
-      selector = hildon_picker_dialog_get_selector (dialog);
-      model = hildon_touch_selector_get_model (selector, 0);
-
-      if (hildon_touch_selector_get_selected (selector, 0, &iter))
-        {
-          gtk_tree_model_get (model, &iter, 1, &item, -1);
-          hildon_banner_show_information (view, NULL, aw_item_type_get_nick (item));
-        }
+      item = aw_spend_all_dialog_get_selected_item (dialog);
+      hildon_banner_show_information (view, NULL, aw_item_type_get_nick (item));
     }
 
   gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
 static void
-spend_all_append_item (GtkListStore *store,
-                       AwItemType    item)
-{
-  gtk_list_store_insert_with_values (store, NULL, -1,
-                                     0, aw_item_get_display_name (item, 0),
-                                     1, item, -1);
-}
-
-static void
 spend_all_cb (GtkWidget *button,
               GtkWidget *view)
 {
-  GtkWidget           *dialog, *parent;
-  HildonTouchSelector *selector;
-  GtkListStore        *store;
-  GtkCellRenderer     *cell;
-  AwItemType           i;
+  GtkWidget *dialog, *parent;
+  int        production_points;
 
-  parent   = gtk_widget_get_ancestor (view, GTK_TYPE_WINDOW);
+  parent = gtk_widget_get_ancestor (view, GTK_TYPE_WINDOW);
+  dialog = aw_spend_all_dialog_new ((GtkWindow *) parent);
 
-  store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_UINT);
+  production_points = aw_tree_view_accumulate (AW_TREE_VIEW (view),
+                                               aw_planet_get_production_points,
+                                               NULL);
 
-  for (i = AW_ITEM_VESSELS_FIRST; i <= AW_ITEM_VESSELS_LAST; ++i)
-    spend_all_append_item (store, i);
-
-  spend_all_append_item (store, AW_ITEM_TRADE);
-
-  selector = HILDON_TOUCH_SELECTOR (hildon_touch_selector_new ());
-  cell = g_object_new (GTK_TYPE_CELL_RENDERER_TEXT, "xalign", 0.5, NULL);
-  hildon_touch_selector_append_column (selector, GTK_TREE_MODEL (store),
-                                       cell, "text", 0, NULL);
-
-  g_object_unref (store);
-
-  dialog = gtk_widget_new (HILDON_TYPE_PICKER_DIALOG,
-                           "destroy-with-parent", TRUE,
-                           "transient-for", parent, "modal", TRUE,
-                           "title", _("Spend all Points"), NULL);
-
-  hildon_picker_dialog_set_selector (HILDON_PICKER_DIALOG (dialog), selector);
+  aw_spend_all_dialog_set_production_points (AW_SPEND_ALL_DIALOG (dialog),
+                                             production_points);
 
   g_signal_connect (dialog, "response",
                     G_CALLBACK (spend_all_response_cb), view);
@@ -516,6 +482,7 @@ fetch_profile_cb (GObject      *source,
   GError     *error = NULL;
 
   profile = aw_session_fetch_profile_finish (session, result, &error);
+  g_print ("%s: profile=%p\n", G_STRFUNC, profile);
 
   if (error)
     {

@@ -76,6 +76,11 @@ void
 aw_tree_view_append_items            (AwTreeView            *view,
                                       GList                 *items);
 
+int
+aw_tree_view_accumulate              (AwTreeView            *view,
+                                      int                  (*callback)(),
+                                      gpointer               user_data);
+
 GtkTreeViewColumn *
 aw_tree_view_append_primary_column   (AwTreeView            *view,
                                       GtkCellRenderer       *cell);

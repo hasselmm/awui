@@ -570,3 +570,45 @@ aw_tree_view_insert_font (AwTreeView         *view,
 
   return list;
 }
+
+int
+aw_tree_view_accumulate (AwTreeView  *view,
+                         int        (*callback)(),
+                         gpointer     user_data)
+{
+  int           result = 0;
+  GtkTreeModel *model;
+  GtkTreeIter   iter;
+  gpointer      item;
+  GType         type;
+
+  g_return_val_if_fail (AW_IS_TREE_VIEW (view), -1);
+  g_return_val_if_fail (NULL != callback,       -1);
+
+  model = gtk_tree_view_get_model (GTK_TREE_VIEW (view));
+  type  = gtk_tree_model_get_column_type (model, 0);
+
+  g_return_val_if_fail (g_type_is_a (type, G_TYPE_OBJECT) ||
+                        g_type_is_a (type, G_TYPE_BOXED), -1);
+
+  if (model && gtk_tree_model_get_iter_first (model, &iter))
+    do
+      {
+        gtk_tree_model_get (model, &iter, 0, &item, -1);
+
+        if (item)
+          {
+            result += callback (item, user_data);
+
+            if (g_type_is_a (type, G_TYPE_OBJECT))
+              g_object_unref (item);
+            else
+              g_boxed_free (type, item);
+          }
+      }
+    while (gtk_tree_model_iter_next (model, &iter));
+
+  return result;
+}
+
+

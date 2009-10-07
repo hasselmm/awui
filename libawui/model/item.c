@@ -42,18 +42,73 @@ aw_item_get_display_name (AwItemType item,
   return NULL;
 }
 
-int
-aw_item_is_building (AwItemType type)
+gboolean
+aw_item_is_building (AwItemType item)
 {
-  return (type >= AW_ITEM_BUILDINGS_FIRST &&
-          type <= AW_ITEM_BUILDINGS_LAST);
+  return (item >= AW_ITEM_BUILDINGS_FIRST &&
+          item <= AW_ITEM_BUILDINGS_LAST);
 }
 
-int
-aw_item_is_vessel (AwItemType type)
+gboolean
+aw_item_is_vessel (AwItemType item)
 {
-  return (type >= AW_ITEM_VESSELS_FIRST &&
-          type <= AW_ITEM_VESSELS_LAST);
+  return (item >= AW_ITEM_VESSELS_FIRST &&
+          item <= AW_ITEM_VESSELS_LAST);
+}
+
+gboolean
+aw_item_can_spend_all (AwItemType item)
+{
+  switch (item)
+    {
+    case AW_ITEM_DESTROYER:
+    case AW_ITEM_CRUISER:
+    case AW_ITEM_BATTLESHIP:
+    case AW_ITEM_TRADE:
+      return TRUE;
+
+    case AW_ITEM_FARM:
+    case AW_ITEM_FACTORY:
+    case AW_ITEM_CYBERNET:
+    case AW_ITEM_LABORATORY:
+    case AW_ITEM_STARBASE:
+    case AW_ITEM_TRANSPORT:
+    case AW_ITEM_COLONY_SHIP:
+    case AW_ITEM_INVALID:
+    case AW_ITEM_LAST:
+      break;
+    }
+
+  return FALSE;
+}
+
+gboolean
+aw_item_is_available (AwItemType       item,
+                      const AwProfile *profile)
+{
+  g_return_val_if_fail (AW_IS_PROFILE (profile), FALSE);
+
+  switch (item)
+    {
+    case AW_ITEM_CRUISER:
+      return aw_profile_get_level (profile, AW_SCIENCE_MATHEMATICS) >= 15;
+    case AW_ITEM_BATTLESHIP:
+      return aw_profile_get_level (profile, AW_SCIENCE_PHYSICS) >= 15;
+    case AW_ITEM_FARM:
+    case AW_ITEM_FACTORY:
+    case AW_ITEM_CYBERNET:
+    case AW_ITEM_LABORATORY:
+    case AW_ITEM_STARBASE:
+    case AW_ITEM_TRANSPORT:
+    case AW_ITEM_COLONY_SHIP:
+    case AW_ITEM_DESTROYER:
+    case AW_ITEM_TRADE:
+    case AW_ITEM_INVALID:
+    case AW_ITEM_LAST:
+      break;
+    }
+
+  return TRUE;
 }
 
 int

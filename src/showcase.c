@@ -466,6 +466,28 @@ captcha_dialog_cb (GtkWindow  *parent,
   gtk_widget_destroy (dialog);
 }
 
+static void
+spend_all_dialog_cb (GtkWindow  *parent,
+                     const char *title,
+                     gpointer    user_data)
+{
+  AwItemType  item;
+  GtkWidget  *dialog;
+
+  dialog = aw_spend_all_dialog_new (parent);
+
+  if (GTK_RESPONSE_OK == gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+      item = aw_spend_all_dialog_get_selected_item (AW_SPEND_ALL_DIALOG (dialog));
+
+      hildon_banner_show_informationf (GTK_WIDGET (parent),
+                                       NULL, "Item: '%s'",
+                                       aw_item_type_get_nick (item));
+    }
+
+  gtk_widget_destroy (dialog);
+}
+
 /* ================================================================= */
 
 static void
@@ -621,8 +643,9 @@ main (int    argc,
 #endif
 
   register_group (store, "Dialogs");
-  register_demo  (store, "AwLoginDialog",      "Login Dialog",                    login_dialog_cb,   NULL);
-  register_demo  (store, "AwCaptchaDialog",    "Captcha Dialog",                  captcha_dialog_cb, NULL);
+  register_demo  (store, "AwLoginDialog",      "Login Dialog",                    login_dialog_cb,     NULL);
+  register_demo  (store, "AwCaptchaDialog",    "Captcha Dialog",                  captcha_dialog_cb,   NULL);
+  register_demo  (store, "AwSpendAllDialog",   "Spend All Points Dialog",         spend_all_dialog_cb, NULL);
 
   register_group (store, "Tree Views");
   register_demo  (store, "AwTreeView",         "Custom text for empty models",    empty_text_cb,     NULL);

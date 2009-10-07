@@ -134,6 +134,7 @@ libawui_hildon_la_static_headers = libawui/hildon/captcha-dialog.h \
 				   libawui/hildon/planet-detail-view.h \
 				   libawui/hildon/popup-dialog.h \
 				   libawui/hildon/science-view.h \
+				   libawui/hildon/spend-all-dialog.h \
 				   libawui/hildon/system-view.h \
 				   libawui/hildon/tree-view.h \
 				   libawui/hildon/window.h
@@ -148,6 +149,7 @@ libawui_hildon_la_static_sources = libawui/hildon/captcha-dialog.c \
 				   libawui/hildon/planet-detail-view.c \
 				   libawui/hildon/popup-dialog.c \
 				   libawui/hildon/science-view.c \
+				   libawui/hildon/spend-all-dialog.c \
 				   libawui/hildon/system-view.c \
 				   libawui/hildon/tree-view.c \
 				   libawui/hildon/window.c

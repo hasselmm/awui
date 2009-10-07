@@ -1,7 +1,7 @@
 #ifndef __AW_MODEL_ITEM_H__
 #define __AW_MODEL_ITEM_H__ 1
 
-#include <glib-object.h>
+#include "profile.h"
 
 typedef enum {
   AW_ITEM_INVALID = -1,
@@ -28,26 +28,33 @@ typedef enum {
 } AwItemType;
 
 G_CONST_RETURN char *
-aw_item_get_display_name  (AwItemType item,
-                           int        amount);
+aw_item_get_display_name  (AwItemType       item,
+                           int              amount);
 
 gboolean
-aw_item_is_building       (AwItemType item) G_GNUC_PURE;
+aw_item_is_building       (AwItemType       item) G_GNUC_PURE;
 
 gboolean
-aw_item_is_vessel         (AwItemType item) G_GNUC_PURE;
+aw_item_is_vessel         (AwItemType       item) G_GNUC_PURE;
+
+gboolean
+aw_item_can_spend_all     (AwItemType       item) G_GNUC_PURE;
+
+gboolean
+aw_item_is_available      (AwItemType       item,
+                           const AwProfile *profile) G_GNUC_PURE;
 
 int
-aw_item_get_attack_value  (AwItemType item,
-                           int        level);
+aw_item_get_attack_value  (AwItemType       item,
+                           int              level);
 
 int
-aw_item_get_defense_value (AwItemType item,
-                           int        level);
+aw_item_get_defense_value (AwItemType       item,
+                           int              level);
 
 int
-aw_item_get_combat_value  (AwItemType item,
-                           int        level);
+aw_item_get_combat_value  (AwItemType       item,
+                           int              level);
 
 #endif /* __AW_MODEL_ITEM__H__ */
 
