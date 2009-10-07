@@ -141,6 +141,17 @@ aw_session_fetch_fleets_finish    (AwSession          *session,
                                    GError            **error);
 
 void
+aw_session_fetch_profile_async    (AwSession          *session,
+                                   int                 profile_id,
+                                   GAsyncReadyCallback callback,
+                                   gpointer            user_data);
+
+AwProfile *
+aw_session_fetch_profile_finish   (AwSession          *session,
+                                   GAsyncResult       *result,
+                                   GError            **error);
+
+void
 aw_session_select_science_async   (AwSession          *session,
                                    AwScienceId         science_id,
                                    GAsyncReadyCallback callback,

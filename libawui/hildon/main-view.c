@@ -15,6 +15,9 @@ struct _AwMainViewPrivate {
   GtkAlignment  parent;
   GtkWidget    *buttons[AW_MAIN_VIEW_ACTION_LAST];
   GtkWidget    *table;
+
+  AwNews       *latest_news;
+  AwProfile    *profile;
 };
 
 static unsigned signals[LAST_SIGNAL] = { 0, };
@@ -143,8 +146,26 @@ aw_main_view_init (AwMainView *view)
 }
 
 static void
+aw_main_view_finalize (GObject *object)
+{
+  AwMainView *view = AW_MAIN_VIEW (object);
+
+  if (view->priv->latest_news)
+    g_object_ref (view->priv->latest_news);
+  if (view->priv->profile)
+    g_object_ref (view->priv->profile);
+
+  G_OBJECT_CLASS (aw_main_view_parent_class)->finalize (object);
+}
+
+static void
 aw_main_view_class_init (AwMainViewClass *class)
 {
+  GObjectClass *object_class;
+
+  object_class           = G_OBJECT_CLASS (class);
+  object_class->finalize = aw_main_view_finalize;
+
   signals[ACTION_STARTED] = g_signal_new ("action-started",
                                           AW_TYPE_MAIN_VIEW,
                                           G_SIGNAL_RUN_LAST, 0, NULL, NULL,
@@ -159,3 +180,37 @@ aw_main_view_new (void)
 {
   return gtk_widget_new (AW_TYPE_MAIN_VIEW, NULL);
 }
+
+void
+aw_main_view_set_latest_news (AwMainView *view,
+                              AwNews     *news)
+{
+  g_return_if_fail (AW_IS_MAIN_VIEW (view));
+  g_return_if_fail (AW_IS_NEWS (news) || !news);
+  g_object_set (view, "latest-news", news, NULL);
+}
+
+AwNews *
+aw_main_view_get_latest_news (AwMainView *view)
+{
+  g_return_val_if_fail (AW_IS_MAIN_VIEW (view), NULL);
+  return view->priv->latest_news;
+}
+
+void
+aw_main_view_set_profile (AwMainView *view,
+                          AwProfile  *profile)
+{
+  g_return_if_fail (AW_IS_MAIN_VIEW (view));
+  g_return_if_fail (AW_IS_PROFILE (profile) || !profile);
+  g_object_set (view, "profile", profile, NULL);
+}
+
+AwProfile *
+aw_main_view_get_profile (AwMainView *view)
+{
+  g_return_val_if_fail (AW_IS_MAIN_VIEW (view), NULL);
+  return view->priv->profile;
+}
+
+

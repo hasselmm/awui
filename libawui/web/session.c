@@ -108,21 +108,31 @@ aw_session_constructor (GType                  type,
   return object;
 }
 
-static void
-aw_settion_save_cookies (AwSession *session)
+static char *
+aw_session_get_cookies (AwSession *session)
 {
   char    *cookies = NULL;
   SoupURI *uri;
 
-  uri = soup_uri_new (session->base_uri);
-  cookies = soup_cookie_jar_get_cookies (session->cookies, uri, TRUE);
-  soup_uri_free (uri);
+  if (session->cookies)
+    {
+      uri = soup_uri_new (session->base_uri);
+      cookies = soup_cookie_jar_get_cookies (session->cookies, uri, TRUE);
+      soup_uri_free (uri);
+    }
+
+  return cookies;
+}
+
+static void
+aw_settion_save_cookies (AwSession *session)
+{
+  char *cookies = aw_session_get_cookies (session);
 
   if (cookies)
     {
       g_object_set (aw_settings_get_singleton (),
                     "session-cookies", cookies, NULL);
-
       g_free (cookies);
     }
 }
@@ -546,6 +556,7 @@ aw_session_login_finish (AwSession     *session,
                          GError       **error)
 {
   gboolean     success = FALSE;
+  char        *cookies = NULL;
   SoupMessage *message;
 
   message = aw_session_finish_message (session, result,
@@ -557,6 +568,25 @@ aw_session_login_finish (AwSession     *session,
                             message->response_body->length,
                             "<b>Incorrect password</b>"))
     {
+      if (session->cookies)
+        cookies = aw_session_get_cookies (session);
+
+      if (cookies)
+        {
+          int         profile_id;
+          const char *login;
+
+          login = strstr (cookies, "login=");
+
+          if (login && 1 == sscanf (login, "login=%d", &profile_id))
+            {
+              g_object_set (aw_settings_get_singleton (),
+                            "profile-id", profile_id, NULL);
+            }
+
+          g_free (cookies);
+        }
+
       aw_session_run_postponed (session);
       success = TRUE;
     }
@@ -800,3 +830,62 @@ aw_session_select_science_async (AwSession          *session,
                          "science", field_value, NULL);
 }
 
+void
+aw_session_fetch_profile_async (AwSession           *session,
+                                int                  profile_id,
+                                GAsyncReadyCallback  callback,
+                                gpointer             user_data)
+{
+  if (profile_id < 1)
+    g_object_get (aw_settings_get_singleton (),
+                  "profile-id", &profile_id, NULL);
+
+  aw_session_fetch_async (session, callback, user_data,
+                          aw_session_fetch_profile_async,
+                          "/0/Player/Profile.php?id=%d", profile_id);
+}
+
+AwProfile *
+aw_session_fetch_profile_finish (AwSession     *session,
+                                 GAsyncResult  *result,
+                                 GError       **error)
+{
+  AwProfile   *profile = NULL;
+  int          profile_id;
+  SoupMessage *message;
+  const char  *query;
+
+  message = aw_session_finish_message (session, result,
+                                       aw_session_fetch_profile_async,
+                                       error);
+
+
+  if (message)
+    {
+      query = soup_message_get_uri (message)->query;
+
+      if (query)
+        query = strstr (query, "id=");
+      if (query && 1 != sscanf (query, "id=%d", &profile_id))
+        profile_id = 0;
+
+      profile = aw_parser_read_profile (message->response_body->data,
+                                        message->response_body->length,
+                                        profile_id, error);
+    }
+
+  if (profile)
+    {
+      g_object_get (aw_settings_get_singleton (),
+                    "profile-id", &profile_id, NULL);
+
+      if (profile_id && profile_id == aw_profile_get_id (profile))
+        {
+          AwProfile *self = aw_profile_get_self ();
+          aw_profile_reset (self, profile);
+          g_object_unref (self);
+        }
+    }
+
+  return profile;
+}

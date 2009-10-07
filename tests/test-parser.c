@@ -236,7 +236,8 @@ test_parse_planets (void)
   GError     *error = NULL;
   char       *data  = NULL;
   gsize       length;
-  char       *username;
+  AwProfile  *profile;
+  const char *self;
 
   if (g_file_get_contents ("tests/data/planets.html", &data, &length, &error))
     list = aw_parser_read_planets (data, length, &error);
@@ -245,18 +246,18 @@ test_parse_planets (void)
 
   CHECK_ERROR (error);
 
-  g_object_get (aw_settings_get_singleton (),
-                "username", &username, NULL);
+  profile = aw_profile_get_self ();
+  self    = aw_profile_get_name (profile);
 
   g_assert_cmpint (4, ==, g_list_length (list));
 
-  CHECK_BUILDINGS ("Alpha Alya 2", username, 5, 8, 8, 9, -1, -1, -1, AW_PLANET_DEFAULT);
-  CHECK_BUILDINGS ("Alpha Alya 1", username, 4, 6, 6, 6, -1, -1, -1, AW_PLANET_DEFAULT);
-  CHECK_BUILDINGS ("Alpha Alya 3", username, 4, 6, 6, 6, -1, -1, -1, AW_PLANET_SIEGED);
-  CHECK_BUILDINGS ("Alpha Alya 4", username, 2, 3, 2, 4, -1, -1, -1, AW_PLANET_DEFAULT);
+  CHECK_BUILDINGS ("Alpha Alya 2", self, 5, 8, 8, 9, -1, -1, -1, AW_PLANET_DEFAULT);
+  CHECK_BUILDINGS ("Alpha Alya 1", self, 4, 6, 6, 6, -1, -1, -1, AW_PLANET_DEFAULT);
+  CHECK_BUILDINGS ("Alpha Alya 3", self, 4, 6, 6, 6, -1, -1, -1, AW_PLANET_SIEGED);
+  CHECK_BUILDINGS ("Alpha Alya 4", self, 2, 3, 2, 4, -1, -1, -1, AW_PLANET_DEFAULT);
 
   g_assert (NULL == list);
-  g_free (username);
+  g_object_unref (profile);
 }
 
 static void

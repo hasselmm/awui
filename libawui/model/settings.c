@@ -1,16 +1,13 @@
 #include "config.h"
 #include "settings.h"
 
-enum {
-  PROP_0,
-  PROP_USERNAME,
+typedef enum {
+  PROP_USERNAME = 1,
   PROP_PASSWORD,
+  PROP_PROFILE_ID,
   PROP_STORE_CREDENTIALS,
-  PROP_PLAYER_LEVEL,
-  PROP_ALLIANCE_TAG,
   PROP_SESSION_COOKIES,
-  PROP_ORIGIN,
-};
+} AwSettingsPropId;
 
 struct _AwSettings {
   GObject   parent;
@@ -144,32 +141,25 @@ aw_settings_set_property (GObject      *object,
 {
   AwSettings *settings = AW_SETTINGS (object);
 
-  switch (prop_id) {
+  switch ((AwSettingsPropId) prop_id) {
   case PROP_USERNAME:
     aw_settings_set_string (settings, "profile", "username", value);
-    break;
+    return;
   case PROP_PASSWORD:
     aw_settings_set_string (settings, "profile", "password", value);
-    break;
+    return;
+  case PROP_PROFILE_ID:
+    aw_settings_set_integer (settings, "profile", "profile-id", value);
+    return;
   case PROP_STORE_CREDENTIALS:
     aw_settings_set_boolean (settings, "profile", "store-credentials", value);
-    break;
-  case PROP_PLAYER_LEVEL:
-    aw_settings_set_integer (settings, "profile", "player-level", value);
-    break;
-  case PROP_ALLIANCE_TAG:
-    aw_settings_set_string (settings, "profile", "alliance", value);
-    break;
+    return;
   case PROP_SESSION_COOKIES:
     aw_settings_set_string (settings, "session", "cookies", value);
-    break;
-  case PROP_ORIGIN:
-    aw_settings_set_integer (settings, "profile", "origin", value);
-    break;
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    break;
+    return;
   }
+
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 }
 
 static void
@@ -245,32 +235,25 @@ aw_settings_get_property (GObject    *object,
 {
   AwSettings *settings = AW_SETTINGS (object);
 
-  switch (prop_id) {
+  switch ((AwSettingsPropId) prop_id) {
   case PROP_USERNAME:
     aw_settings_get_string (settings, "profile", "username", value, pspec);
-    break;
+    return;
   case PROP_PASSWORD:
     aw_settings_get_string (settings, "profile", "password", value, pspec);
-    break;
+    return;
+  case PROP_PROFILE_ID:
+    aw_settings_get_integer (settings, "profile", "profile-id", value, pspec);
+    return;
   case PROP_STORE_CREDENTIALS:
     aw_settings_get_boolean (settings, "profile", "store-credentials", value, pspec);
-    break;
-  case PROP_PLAYER_LEVEL:
-    aw_settings_get_integer (settings, "profile", "player-level", value, pspec);
-    break;
-  case PROP_ALLIANCE_TAG:
-    aw_settings_get_string (settings, "profile", "alliance", value, pspec);
-    break;
+    return;
   case PROP_SESSION_COOKIES:
     aw_settings_get_string (settings, "session", "cookies", value, pspec);
-    break;
-  case PROP_ORIGIN:
-    aw_settings_get_integer (settings, "profile", "origin", value, pspec);
-    break;
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    break;
+    return;
   }
+
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 }
 
 static void
@@ -312,22 +295,13 @@ aw_settings_class_init (AwSettingsClass *class)
                            G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property
-    (object_class, PROP_PLAYER_LEVEL,
-     g_param_spec_int ("player-level",
-                       "Player Level",
-                       "Combat experience of the player",
+    (object_class, PROP_PROFILE_ID,
+     g_param_spec_int ("profile-id",
+                       "Profile ID",
+                       "Numeric identifier of the player's profile",
                        0, G_MAXINT, 0,
                        G_PARAM_READWRITE |
                        G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_property
-    (object_class, PROP_ALLIANCE_TAG,
-     g_param_spec_string ("alliance-tag",
-                          "Alliance Tag",
-                          "Identifier of the player's alliance",
-                          NULL,
-                          G_PARAM_READWRITE |
-                          G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_property
     (object_class, PROP_SESSION_COOKIES,
@@ -337,15 +311,6 @@ aw_settings_class_init (AwSettingsClass *class)
                           NULL,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_property
-    (object_class, PROP_ORIGIN,
-     g_param_spec_int ("origin",
-                       "Origin",
-                       "Origin of the player",
-                       0, G_MAXINT, 0,
-                       G_PARAM_READWRITE |
-                       G_PARAM_STATIC_STRINGS));
 }
 
 AwSettings *

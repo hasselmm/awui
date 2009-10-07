@@ -32,9 +32,9 @@ aw_map_view_new        (void);
 
 void
 aw_map_view_set_origin (AwMapView *view,
-                        AwStar    *star);
+                        AwPoint   *point);
 
-AwStar *
+G_CONST_RETURN AwPoint *
 aw_map_view_get_origin (AwMapView *view);
 
 #endif /* __AW_MAP_VIEW_H__ */

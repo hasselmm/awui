@@ -14,7 +14,7 @@ enum {
 };
 
 struct _AwMapViewPrivate {
-  AwStar     *origin;
+  AwPoint *origin;
 };
 
 static unsigned signals[LAST_SIGNAL] = { 0, };
@@ -42,8 +42,17 @@ aw_map_view_row_tapped_cb (GtkTreeView *view,
 static void
 aw_map_view_init (AwMapView *view)
 {
+  const AwPoint *origin = NULL;
+  AwProfile     *profile;
+
+  profile = aw_profile_get_self ();
+  origin  = aw_profile_get_origin (profile);
+
   view->priv = G_TYPE_INSTANCE_GET_PRIVATE (view, AW_TYPE_MAP_VIEW,
                                             AwMapViewPrivate);
+  view->priv->origin = aw_point_copy (origin);
+
+  g_object_unref (profile);
 
   g_signal_connect (view, "hildon-row-tapped",
                     G_CALLBACK (aw_map_view_row_tapped_cb), NULL);
@@ -59,7 +68,7 @@ aw_map_view_set_property (GObject      *object,
 
   switch (prop_id) {
   case PROP_ORIGIN:
-    aw_star_unref (view->priv->origin);
+    aw_point_free (view->priv->origin);
     view->priv->origin = g_value_dup_boxed (value);
     gtk_widget_queue_draw (GTK_WIDGET (view));
     break;
@@ -178,15 +187,21 @@ aw_map_view_compare_by_distance (GtkTreeModel *model,
                                  GtkTreeIter  *iter_b,
                                  gpointer      user_data)
 {
-  AwMapView *view = AW_MAP_VIEW (user_data);
-  double     distance_a, distance_b;
-  AwStar    *star_a, *star_b;
+  AwMapView     *view = AW_MAP_VIEW (user_data);
+  const AwPoint *point_a = NULL, *point_b = NULL;
+  double         distance_a, distance_b;
+  AwStar        *star_a, *star_b;
 
   gtk_tree_model_get (model, iter_a, 0, &star_a, -1);
   gtk_tree_model_get (model, iter_b, 0, &star_b, -1);
 
-  distance_a = aw_star_get_distance (star_a, view->priv->origin);
-  distance_b = aw_star_get_distance (star_b, view->priv->origin);
+  if (star_a)
+    point_a = aw_star_get_location (star_a);
+  if (star_b)
+    point_b = aw_star_get_location (star_b);
+
+  distance_a = aw_point_get_distance (point_a, view->priv->origin);
+  distance_b = aw_point_get_distance (point_b, view->priv->origin);
 
   aw_star_unref (star_a);
   aw_star_unref (star_b);
@@ -254,7 +269,9 @@ aw_map_view_title_cell_cb (GtkTreeViewColumn *column,
   if (star)
     {
       view = AW_TREE_VIEW (gtk_tree_view_column_get_tree_view (column));
-      distance = aw_star_get_distance (star, AW_MAP_VIEW (view)->priv->origin);
+
+      distance = aw_point_get_distance (AW_MAP_VIEW (view)->priv->origin,
+                                        aw_star_get_location (star));
 
       g_string_append (text, aw_star_get_name (star));
       g_string_append (text, "\n");
@@ -332,6 +349,16 @@ aw_map_view_create_columns (AwTreeView *view)
 }
 
 static void
+aw_map_view_finalize (GObject *object)
+{
+  AwMapView *view = AW_MAP_VIEW (object);
+
+  aw_point_free (view->priv->origin);
+
+  G_OBJECT_CLASS (aw_map_view_parent_class)->finalize (object);
+}
+
+static void
 aw_map_view_class_init (AwMapViewClass *class)
 {
   GObjectClass    *object_class;
@@ -340,6 +367,7 @@ aw_map_view_class_init (AwMapViewClass *class)
   object_class               = G_OBJECT_CLASS (class);
   object_class->set_property = aw_map_view_set_property;
   object_class->get_property = aw_map_view_get_property;
+  object_class->finalize     = aw_map_view_finalize;
 
   tree_view_class                 = AW_TREE_VIEW_CLASS (class);
   tree_view_class->get_core_model = aw_map_view_get_core_model;
@@ -352,7 +380,7 @@ aw_map_view_class_init (AwMapViewClass *class)
      g_param_spec_boxed ("origin",
                          "Origin",
                          "Origin of the map view",
-                         AW_TYPE_STAR,
+                         AW_TYPE_POINT,
                          G_PARAM_READWRITE |
                          G_PARAM_STATIC_STRINGS));
 
@@ -373,13 +401,13 @@ aw_map_view_new (void)
 
 void
 aw_map_view_set_origin (AwMapView *view,
-                        AwStar    *star)
+                        AwPoint   *point)
 {
   g_return_if_fail (AW_IS_MAP_VIEW (view));
-  g_object_set (view, "origin", star, NULL);
+  g_object_set (view, "origin", point, NULL);
 }
 
-AwStar *
+G_CONST_RETURN AwPoint *
 aw_map_view_get_origin (AwMapView *view)
 {
   g_return_val_if_fail (AW_IS_MAP_VIEW (view), NULL);

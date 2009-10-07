@@ -2,6 +2,7 @@
 #define __AW_MAIN_VIEW_H__ 1
 
 #include <gtk/gtk.h>
+#include <libawui/model.h>
 
 #define AW_TYPE_MAIN_VIEW             (aw_main_view_get_type ())
 #define AW_MAIN_VIEW(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), AW_TYPE_MAIN_VIEW, AwMainView))
@@ -37,10 +38,24 @@ struct _AwMainViewClass {
 };
 
 GType
-aw_main_view_get_type (void) G_GNUC_CONST;
+aw_main_view_get_type        (void) G_GNUC_CONST;
 
 GtkWidget *
-aw_main_view_new      (void);
+aw_main_view_new             (void);
+
+void
+aw_main_view_set_latest_news (AwMainView *view,
+                              AwNews     *news);
+
+AwNews *
+aw_main_view_get_latest_news (AwMainView *view);
+
+void
+aw_main_view_set_profile     (AwMainView *view,
+                              AwProfile  *profile);
+
+AwProfile *
+aw_main_view_get_profile     (AwMainView *view);
 
 #endif /* __AW_MAIN_VIEW_H__ */
 

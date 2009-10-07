@@ -441,15 +441,14 @@ aw_parser_read_planets (const char  *data,
                         gssize       length,
                         GError     **error)
 {
-  GList      *rows = NULL, *l, *n;
-  char       *username = NULL;
-  int         start, end;
+  GList     *rows = NULL, *l, *n;
+  int        start, end;
+  AwProfile *profile;
 
   if (aw_parser_find_table (data, length, "Name", &start, &end, error))
     rows = aw_parser_read_table (data + start, end - start, 6, error);
 
-  g_object_get (aw_settings_get_singleton (),
-                "username", &username, NULL);
+  profile = aw_profile_get_self ();
 
   for (l = rows; l && (n = l->next, l); l = n)
     {
@@ -471,10 +470,14 @@ aw_parser_read_planets (const char  *data,
       if (g_strcmp0 (cells[0], "#404040"))
         flags |= AW_PLANET_SIEGED;
 
-      l->data = aw_planet_new (id, flags, name, username, population);
+      l->data = aw_planet_new (id, flags, name,
+                               aw_profile_get_name (profile),
+                               population);
+
       aw_planet_set_building_levels (l->data, AW_ITEM_FARM, gph - 1,
                                      AW_ITEM_FACTORY, pph - population,
                                      AW_ITEM_INVALID);
+
       aw_planet_set_production_points (l->data, production_points);
 
       g_strfreev (cells);
@@ -484,7 +487,7 @@ aw_parser_read_planets (const char  *data,
   if (l)
     rows = (aw_parser_list_free (rows, l, aw_planet_unref), NULL);
 
-  g_free (username);
+  g_object_unref (profile);
 
   return rows;
 }
@@ -494,15 +497,14 @@ aw_parser_read_buildings (const char  *data,
                           gssize       length,
                           GError     **error)
 {
-  GList      *rows = NULL, *l, *n;
-  char       *username = NULL;
-  int         start, end;
+  GList     *rows = NULL, *l, *n;
+  int        start, end;
+  AwProfile *profile;
 
   if (aw_parser_find_table (data, length, "Name", &start, &end, error))
     rows = aw_parser_read_table (data + start, end - start, 7, error);
 
-  g_object_get (aw_settings_get_singleton (),
-                "username", &username, NULL);
+  profile = aw_profile_get_self ();
 
   for (l = rows; l && (n = l->next, l); l = n)
     {
@@ -529,7 +531,9 @@ aw_parser_read_buildings (const char  *data,
           if (g_strcmp0 (cells[0], "#404040"))
             flags |= AW_PLANET_SIEGED;
 
-          l->data = aw_planet_new (id, flags, name, username, population);
+          l->data = aw_planet_new (id, flags, name,
+                                   aw_profile_get_name (profile),
+                                   population);
 
           aw_planet_set_building_levels (l->data,
                                          AW_ITEM_FARM,       farm,
@@ -551,7 +555,7 @@ aw_parser_read_buildings (const char  *data,
   if (l)
     rows = (aw_parser_list_free (rows, l, aw_planet_unref), NULL);
 
-  g_free (username);
+  g_object_unref (profile);
 
   return rows;
 }

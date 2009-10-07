@@ -20,9 +20,8 @@ show_view (const char *title,
   HildonAppMenu *app_menu;
   GCallback      callback;
   const char    *label;
+  va_list        args;
 
-  va_list    args;
- 
   window = aw_window_new (title);
   gtk_container_add (GTK_CONTAINER (window), view);
   gtk_widget_show_all (window);
@@ -101,23 +100,9 @@ fetch_map_cb (GObject      *source,
               GAsyncResult *result,
               gpointer      view)
 {
-  int    origin;
-  GList *stars;
-
-  stars = fetch_items (source, result, view,
-                       aw_session_fetch_map_finish,
-                       aw_tree_view_append_items);
-
-  g_object_get (aw_settings_get_singleton (),
-                "origin", &origin, NULL);
-
-  while (stars)
-    {
-      if (origin == aw_star_get_id (stars->data))
-        aw_map_view_set_origin (view, stars->data);
-
-      stars = stars->next;
-    }
+  fetch_items (source, result, view,
+               aw_session_fetch_map_finish,
+               aw_tree_view_append_items);
 }
 
 static void
@@ -514,6 +499,58 @@ action_started_cb (GtkWidget        *view,
     }
 }
 
+static void
+fetch_profile_cb (GObject      *source,
+                  GAsyncResult *result,
+                  gpointer      user_data)
+{
+  AwMainView *view = AW_MAIN_VIEW (user_data);
+  AwSession  *session = AW_SESSION (source);
+  AwProfile  *profile, *self;
+  GError     *error = NULL;
+
+  profile = aw_session_fetch_profile_finish (session, result, &error);
+
+  if (error)
+    {
+      hildon_banner_show_information (GTK_WIDGET (view), NULL, error->message);
+      g_error_free (error);
+    }
+  else
+    {
+      self = aw_profile_get_self ();
+      aw_profile_reset (self, profile);
+      aw_main_view_set_profile (view, self);
+      g_object_unref (self);
+    }
+}
+
+static void
+initial_fetch_news_cb (GObject      *source,
+                       GAsyncResult *result,
+                       gpointer      user_data)
+{
+  AwMainView *view = AW_MAIN_VIEW (user_data);
+  AwSession  *session = AW_SESSION (source);
+  GError     *error = NULL;
+  GList      *news;
+
+  news = aw_session_fetch_news_finish (session, result, &error);
+
+  if (error)
+    {
+      hildon_banner_show_information (GTK_WIDGET (view), NULL, error->message);
+      g_error_free (error);
+    }
+  else
+    {
+      if (news)
+        aw_main_view_set_latest_news (view, news->data);
+
+      aw_session_fetch_profile_async (session, 0, fetch_profile_cb, user_data);
+    }
+}
+
 int
 main (int    argc,
       char **argv)
@@ -521,6 +558,7 @@ main (int    argc,
   GtkWidget  *window, *main_view;
   AwSettings *settings;
   AwSession  *session;
+  AwProfile  *profile;
 
 #if ENABLE_I18N
   setlocale (LC_ALL, "");
@@ -533,6 +571,7 @@ main (int    argc,
 
   settings = aw_settings_new ();
   session  = aw_session_new ();
+  profile  = aw_profile_get_self ();
 
   window = hildon_stackable_window_new ();
   gtk_window_set_title (GTK_WINDOW (window), _("Astro Wars"));
@@ -542,9 +581,12 @@ main (int    argc,
   gtk_container_add (GTK_CONTAINER (window), main_view);
   gtk_widget_show (main_view);
 
+  aw_session_fetch_news_async (session, 0, initial_fetch_news_cb, main_view);
+
   g_object_add_weak_pointer (G_OBJECT (settings), (gpointer) &settings);
-  g_object_add_weak_pointer (G_OBJECT (session), (gpointer) &session);
-  g_object_add_weak_pointer (G_OBJECT (window), (gpointer) &window);
+  g_object_add_weak_pointer (G_OBJECT (session),  (gpointer) &session);
+  g_object_add_weak_pointer (G_OBJECT (profile),  (gpointer) &profile);
+  g_object_add_weak_pointer (G_OBJECT (window),   (gpointer) &window);
 
   g_signal_connect_swapped (session, "login-required",
                             G_CALLBACK (aw_main_login), window);
@@ -561,13 +603,19 @@ main (int    argc,
 
   g_warn_if_fail (NULL == window);
 
-  g_object_unref (G_OBJECT (session));
+  g_object_unref (session);
   g_warn_if_fail (NULL == session);
 
   if (session)
     g_object_run_dispose (G_OBJECT (session));
 
-  g_object_unref (G_OBJECT (settings));
+  g_object_unref (profile);
+  g_warn_if_fail (NULL == profile);
+
+  if (profile)
+    g_object_run_dispose (G_OBJECT (profile));
+
+  g_object_unref (settings);
   g_warn_if_fail (NULL == settings);
 
   if (settings)
