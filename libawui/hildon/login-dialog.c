@@ -68,7 +68,7 @@ aw_login_dialog_init (AwLoginDialog *dialog)
 static void
 aw_login_dialog_class_init (AwLoginDialogClass *class)
 {
-  g_type_class_add_private (class, sizeof (AwLoginDialogClass));
+  g_type_class_add_private (class, sizeof (AwLoginDialogPrivate));
 }
 
 GtkWidget *
