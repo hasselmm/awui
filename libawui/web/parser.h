@@ -64,4 +64,10 @@ aw_parser_read_fleets    (const char     *data,
                           gssize          length,
                           GError        **error);
 
+AwProfile *
+aw_parser_read_profile   (const char     *data,
+                          gssize          length,
+                          int             profile_id,
+                          GError        **error);
+
 #endif /* __AW_WEB_PARSER_H__ */

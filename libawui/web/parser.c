@@ -26,9 +26,10 @@ aw_parser_find_table (const char  *data,
 
   pattern = g_strconcat ("<table\\b.*?"
                          "(?:<tr\\b.*?#202060.*?<td\\b.*?>|"
-                            "<td\\b.*?#202060.*?>)",
-                         "(?:", safe_title,
-                         "|<small>", safe_title, "</small>)"
+                            "<td\\b.*?#202060.*?>)"
+                         "(?:<small>|<b>)*",
+                         safe_title,
+                         "(?:</b>|</small>)*"
                          "</td>.*?</tr>(.*?)</table>", NULL);
 
   regex = g_regex_new (pattern, G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
@@ -736,3 +737,314 @@ aw_parser_read_fleets (const char  *data,
 
   return rows;
 }
+
+static gboolean
+aw_parser_read_timespan (const char *text,
+                         int        *result)
+{
+  if (1 != sscanf (text, "%d", result))
+    return FALSE;
+
+  text += strspn (text, "0123456789 ");
+
+  if (g_str_has_prefix (text, "minute"))
+    *result *= 60;
+  else if (g_str_has_prefix (text, "hour"))
+    *result *= 60 * 60;
+  else if (g_str_has_prefix (text, "day"))
+    *result *= 60 * 60 * 24;
+  else
+    return FALSE;
+
+  return TRUE;
+}
+
+static AwProfile *
+aw_parser_read_basic_profile (const char  *data,
+                              gssize       length,
+                              int          profile_id,
+                              GError     **error)
+{
+  gboolean    success = FALSE;
+  AwProfile  *profile = NULL;
+  GList      *rows = NULL, *l, *n;
+  const char *data_end, *start, *end;
+  GRegex     *regex = NULL;
+  GMatchInfo *info = NULL;
+  int         hour, min;
+  int         ival, ival2;
+  char       *sval;
+
+  data_end = data + length;
+
+  if (!(end = g_strstr_len (data, length, "</title>")) ||
+      2 != sscanf (end - 8, "%02d:%02d:", &hour, &min))
+    goto out;
+
+  if (!(end = g_strstr_len (data, length, "Local Time")) ||
+      !(start = g_strrstr_len (data, end - data, "<table")))
+    goto out;
+
+  regex = g_regex_new ("<center><b>(?:"
+                       "(?:<a\\b.*?/Alliances/.*?\\btag=(.*?)[&\"].*</a>)?\\s*"
+                       "(?:<font\\b.*?>(.*?)\\s+\\((\\d+)(?:st|nd|rd|th)\\)</font>|(.*?))"
+                       ")</b></center>",
+                       G_REGEX_CASELESS | G_REGEX_DOTALL, 0, error);
+
+  if (!regex || !g_regex_match_full (regex, start, end - start, 0, 0, &info, NULL))
+    goto out;
+
+  if (!(end = g_strstr_len (start, data_end - start, "</table>")) ||
+      !(rows = aw_parser_read_table (start, end - start, 2, error)))
+    goto out;
+
+  sval = g_match_info_fetch (info, 2);
+
+  if (sval && *sval)
+    {
+      profile = aw_profile_new (profile_id, sval);
+
+      g_free (sval);
+      sval = g_match_info_fetch (info, 3);
+
+      if (1 == sscanf (sval, "%d", &ival))
+        aw_profile_set_permanent_rank (profile, ival);
+    }
+  else
+    {
+      g_free (sval);
+      sval = g_match_info_fetch (info, 4);
+
+      profile = aw_profile_new (profile_id, sval);
+    }
+
+  g_free (sval);
+
+  sval = g_match_info_fetch (info, 1);
+
+  if (sval && *sval)
+    aw_profile_set_alliance_tag (profile, sval);
+
+  g_free (sval);
+
+  for (l = rows; l && (n = l->next, l); l = n)
+    {
+      char **cells = l->data;
+
+      if (!g_strcmp0 (cells[2], "Local Time"))
+        {
+          if (2 != sscanf (cells[4], "%d:%d", &ival, &ival2))
+            break;
+
+          ival = (ival * 60 + ival2) - (hour * 60 + min);
+          aw_profile_set_timezone (profile, ival);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Joined"))
+        {
+          aw_profile_set_start_date (profile, g_strstrip (cells[4]));
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Logins"))
+        {
+          if (1 != sscanf (cells[4], "%d", &ival))
+            break;
+
+          aw_profile_set_login_count (profile, ival);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Idle"))
+        {
+          if (!aw_parser_read_timespan (cells[4], &ival))
+            break;
+
+          aw_profile_set_idle_time (profile, ival);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Sciencelevel"))
+        {
+          if (1 != sscanf (cells[4], "%d", &ival))
+            break;
+
+          aw_profile_set_level (profile, AW_SCIENCE_OVERALL, ival);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Culturelevel"))
+        {
+          if (1 != sscanf (cells[4], "%d", &ival))
+            break;
+
+          aw_profile_set_level (profile, AW_SCIENCE_CULTURE, ival);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Rank (Points Scored)"))
+        {
+          if (2 != sscanf (cells[4], "#%d (%d)", &ival, &ival2))
+            break;
+
+          aw_profile_set_rank (profile, ival);
+          aw_profile_set_score (profile, ival2);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Origin"))
+        {
+          if (!(sval = strstr (cells[4], "x:y")) ||
+              2 != sscanf (sval, "x:y(%d/%d)", &ival, &ival2))
+            break;
+
+          aw_profile_set_origin (profile, ival, ival2);
+          continue;
+        }
+
+      if (!g_strcmp0 (cells[2], "Plays from"))
+        {
+          if (!(sval = strstr (cells[4], "/country/")))
+            break;
+
+          sval += strlen ("/country/");
+          sval[strcspn (sval, ".")] = '\0';
+
+          aw_profile_set_country (profile, sval);
+          continue;
+        }
+
+      if (strstr (cells[2], ">Playerlevel<"))
+        {
+          if (2 != sscanf (cells[4], "%d - %d%%", &ival, &ival2))
+            break;
+
+          aw_profile_set_level (profile, AW_SCIENCE_WARFARE, ival + ival2 * 0.01);
+          continue;
+        }
+    }
+
+  success = TRUE;
+
+out:
+  if (!success)
+    profile = (g_object_unref (profile), NULL);
+
+  g_list_foreach (rows, (GFunc) g_strfreev, NULL);
+  g_list_free (rows);
+
+  return profile;
+}
+
+static gboolean
+aw_parser_read_science_profile (AwProfile   *profile,
+                                const char  *data,
+                                gssize       length,
+                                GError     **error)
+{
+  GList *rows = NULL, *l;
+  int    start, end;
+
+  if (aw_parser_find_table (data, length, "Intelligence Report", &start, &end, error))
+    rows = aw_parser_read_table (data + start, end - start, 2, error);
+
+  for (l = rows; l; l = l->next)
+    {
+      const char  **cells = l->data;
+      int           value;
+      AwScienceId   id;
+
+      if (1 != (sscanf (cells[4], "%d", &value)))
+        break;
+
+      if (!strcmp (cells[2], "Trade Revenue"))
+        {
+          aw_profile_set_bonus (profile, AW_BONUS_TRADE, 1 + value * 0.01);
+          continue;
+        }
+
+      for (id = 0; id < AW_SCIENCE_CULTURE; ++id)
+        {
+          if (!g_ascii_strcasecmp (aw_science_id_get_nick (id), cells[2]))
+            {
+              aw_profile_set_level (profile, id, value);
+              break;
+            }
+        }
+    }
+
+  g_list_foreach (rows, (GFunc) g_strfreev, NULL);
+  g_list_free (rows);
+
+  return (NULL == l);
+}
+
+static gboolean
+aw_parser_read_race_profile (AwProfile   *profile,
+                             const char  *data,
+                             gssize       length,
+                             GError     **error)
+{
+  const char *data_end = data + length;
+  const char *start, *end = NULL;
+
+  if (!(start = g_strstr_len (data, length, "<b>Race Summary</b>")) ||
+      !(end = g_strstr_len (start, data_end - start, "</ul>")))
+    return TRUE;
+
+  while (start < end)
+    {
+      AwBonusType bonus;
+      int         value;
+
+      if (!(start = g_strstr_len (start, data_end - start, "<li>")))
+        break;
+
+      start += strspn (start, "<li>+");
+
+      if (1 != sscanf (start, "%d", &value))
+        break;
+
+      start += strspn (start, "0123456789%h- ");
+
+      for (bonus = 0; bonus < AW_BONUS_LAST; ++bonus)
+        {
+          const char *nick = aw_bonus_type_get_nick (bonus);
+
+          if (!g_ascii_strncasecmp (nick, start, strlen (nick)))
+            {
+              if (AW_BONUS_SPEED != bonus)
+                aw_profile_set_bonus (profile, bonus, 1 + value * 0.01);
+              else
+                aw_profile_set_bonus (profile, bonus, value);
+
+              break;
+            }
+        }
+
+      if (bonus >= AW_BONUS_LAST)
+        break;
+    }
+
+  return !start;
+}
+
+AwProfile *
+aw_parser_read_profile (const char  *data,
+                        gssize       length,
+                        int          profile_id,
+                        GError     **error)
+{
+  AwProfile *profile;
+
+  if (!(profile = aw_parser_read_basic_profile (data, length, profile_id, error)))
+    return NULL;
+
+  if (!aw_parser_read_science_profile (profile, data, length, error) ||
+      !aw_parser_read_race_profile (profile, data, length, error))
+    profile = (g_object_unref (profile), NULL);
+
+  return profile;
+}
+

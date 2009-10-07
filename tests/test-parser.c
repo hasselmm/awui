@@ -1,5 +1,6 @@
 #include <libawui/model.h>
 #include <libawui/web.h>
+#include <math.h>
 
 #define CHECK_ERROR(error)                                                      \
 G_STMT_START                                                                    \
@@ -289,7 +290,7 @@ test_parse_buildings (void)
 }
 
 static void
-test_parse_science (void)
+test_parse_science1 (void)
 {
   GList          *list    = NULL;
   AwScienceId     current = AW_SCIENCE_INVALID;
@@ -363,7 +364,7 @@ test_parse_science2 (void)
 }
 
 static void
-test_parse_fleet (void)
+test_parse_fleet1 (void)
 {
   GList  *list  = NULL;
   GError *error = NULL;
@@ -449,6 +450,158 @@ test_parse_fleet3 (void)
   g_assert (NULL == list);
 }
 
+static void
+test_parse_profile1 (void)
+{
+  AwProfile *profile = NULL;
+  GError    *error = NULL;
+  char      *data  = NULL;
+  gsize      length;
+
+  if (g_file_get_contents ("tests/data/profile.html", &data, &length, &error))
+    profile = aw_parser_read_profile (data, length, 0, &error);
+
+  g_free (data);
+
+  CHECK_ERROR (error);
+  g_assert (AW_IS_PROFILE (profile));
+
+  g_assert_cmpstr   ("tbf",          ==, aw_profile_get_name (profile));
+  g_assert_cmpstr   (NULL,           ==, aw_profile_get_alliance_tag (profile));
+  g_assert_cmpint   (603,            ==, aw_profile_get_permanent_rank (profile));
+  g_assert_cmpint   (1,              ==, aw_profile_get_score (profile));
+  g_assert_cmpint   (923,            ==, aw_profile_get_rank (profile));
+
+  g_assert_cmpint   (-48,            ==, aw_profile_get_origin (profile)->x);
+  g_assert_cmpint   (-25,            ==, aw_profile_get_origin (profile)->y);
+  g_assert_cmpstr   ("September 23", ==, aw_profile_get_start_date (profile));
+  g_assert_cmpint   (364,            ==, aw_profile_get_login_count (profile));
+  g_assert_cmpint   (120,            ==, aw_profile_get_idle_time (profile));
+  g_assert_cmpint   (0,              ==, aw_profile_get_timezone (profile));
+  g_assert_cmpstr   ("DE",           ==, aw_profile_get_country (profile));
+
+  g_assert_cmpfloat (13,             ==, aw_profile_get_level (profile, AW_SCIENCE_OVERALL));
+  g_assert_cmpfloat (10,             ==, aw_profile_get_level (profile, AW_SCIENCE_BIOLOGY));
+  g_assert_cmpfloat (10,             ==, aw_profile_get_level (profile, AW_SCIENCE_ECONOMY));
+  g_assert_cmpfloat (13,             ==, aw_profile_get_level (profile, AW_SCIENCE_ENERGY));
+  g_assert_cmpfloat (11,             ==, aw_profile_get_level (profile, AW_SCIENCE_MATHEMATICS));
+  g_assert_cmpfloat (9,              ==, aw_profile_get_level (profile, AW_SCIENCE_PHYSICS));
+  g_assert_cmpfloat (10,             ==, aw_profile_get_level (profile, AW_SCIENCE_SOCIAL));
+  g_assert_cmpfloat (8,              ==, aw_profile_get_level (profile, AW_SCIENCE_CULTURE));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_level (profile, AW_SCIENCE_WARFARE) - 1.6));
+
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_TRADE)      - 1.00));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_GROWTH)     - 0.93));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_SCIENCE)    - 1.00));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_CULTURE)    - 1.10));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_PRODUCTION) - 1.00));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_ATTACK)     - 0.88));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_DEFENSE)    - 1.16));
+  g_assert_cmpfloat (0.01,      >, fabs (aw_profile_get_bonus (profile, AW_BONUS_SPEED)      - 6));
+}
+
+static void
+test_parse_profile2 (void)
+{
+  AwProfile *profile = NULL;
+  GError    *error = NULL;
+  char      *data  = NULL;
+  gsize      length;
+
+  if (g_file_get_contents ("tests/data/profile2.html", &data, &length, &error))
+    profile = aw_parser_read_profile (data, length, 0, &error);
+
+  g_free (data);
+
+  CHECK_ERROR (error);
+
+  g_assert (AW_IS_PROFILE (profile));
+
+  g_assert_cmpstr   ("macfly",    ==, aw_profile_get_name (profile));
+  g_assert_cmpstr   ("AO",        ==, aw_profile_get_alliance_tag (profile));
+  g_assert_cmpint   (327,         ==, aw_profile_get_permanent_rank (profile));
+  g_assert_cmpint   (38,          ==, aw_profile_get_score (profile));
+  g_assert_cmpint   (646,         ==, aw_profile_get_rank (profile));
+
+  g_assert_cmpint   (-36,         ==, aw_profile_get_origin (profile)->x);
+  g_assert_cmpint   (-19,         ==, aw_profile_get_origin (profile)->y);
+  g_assert_cmpstr   ("August 17", ==, aw_profile_get_start_date (profile));
+  g_assert_cmpint   (363,         ==, aw_profile_get_login_count (profile));
+  g_assert_cmpint   (1380,        ==, aw_profile_get_idle_time (profile));
+  g_assert_cmpint   (0,           ==, aw_profile_get_timezone (profile));
+  g_assert_cmpstr   ("FR",        ==, aw_profile_get_country (profile));
+
+  g_assert_cmpfloat (25,          ==, aw_profile_get_level (profile, AW_SCIENCE_OVERALL));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_BIOLOGY));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_ECONOMY));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_ENERGY));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_MATHEMATICS));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_PHYSICS));
+  g_assert_cmpfloat (0,            >, aw_profile_get_level (profile, AW_SCIENCE_SOCIAL));
+  g_assert_cmpfloat (12,          ==, aw_profile_get_level (profile, AW_SCIENCE_CULTURE));
+  g_assert_cmpfloat (0.01,         >, aw_profile_get_level (profile, AW_SCIENCE_WARFARE) - 15.85);
+
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_TRADE));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_GROWTH));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_SCIENCE));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_CULTURE));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_PRODUCTION));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_SPEED));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_ATTACK));
+  g_assert_cmpfloat (0,            >, aw_profile_get_bonus (profile, AW_BONUS_DEFENSE));
+}
+
+static void
+test_parse_profile3 (void)
+{
+  AwProfile *profile = NULL;
+  GError    *error = NULL;
+  char      *data  = NULL;
+  gsize      length;
+
+  if (g_file_get_contents ("tests/data/profile3.html", &data, &length, &error))
+    profile = aw_parser_read_profile (data, length, 0, &error);
+
+  g_free (data);
+
+  CHECK_ERROR (error);
+
+  g_assert (AW_IS_PROFILE (profile));
+
+  g_assert_cmpstr   ("cazzor",       ==, aw_profile_get_name (profile));
+  g_assert_cmpstr   (NULL,           ==, aw_profile_get_alliance_tag (profile));
+  g_assert_cmpint   (0,              ==, aw_profile_get_permanent_rank (profile));
+  g_assert_cmpint   (0,              ==, aw_profile_get_score (profile));
+  g_assert_cmpint   (1315,           ==, aw_profile_get_rank (profile));
+
+  g_assert_cmpint   (-48,            ==, aw_profile_get_origin (profile)->x);
+  g_assert_cmpint   (-26,            ==, aw_profile_get_origin (profile)->y);
+  g_assert_cmpstr   ("September 24", ==, aw_profile_get_start_date (profile));
+  g_assert_cmpint   (1,              ==, aw_profile_get_login_count (profile));
+  g_assert_cmpint   (1036800,        ==, aw_profile_get_idle_time (profile));
+  g_assert_cmpint   (480,            ==, aw_profile_get_timezone (profile));
+  g_assert_cmpstr   ("AU",           ==, aw_profile_get_country (profile));
+
+  g_assert_cmpfloat (8,              ==, aw_profile_get_level (profile, AW_SCIENCE_OVERALL));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_BIOLOGY));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_ECONOMY));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_ENERGY));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_MATHEMATICS));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_PHYSICS));
+  g_assert_cmpfloat (0,               >, aw_profile_get_level (profile, AW_SCIENCE_SOCIAL));
+  g_assert_cmpfloat (4,              ==, aw_profile_get_level (profile, AW_SCIENCE_CULTURE));
+  g_assert_cmpfloat (0,              ==, aw_profile_get_level (profile, AW_SCIENCE_WARFARE));
+
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_TRADE));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_GROWTH));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_SCIENCE));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_CULTURE));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_PRODUCTION));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_SPEED));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_ATTACK));
+  g_assert_cmpfloat (0,               >, aw_profile_get_bonus (profile, AW_BONUS_DEFENSE));
+}
+
 int
 main (int    argc,
       char **argv)
@@ -464,11 +617,14 @@ main (int    argc,
   g_test_add_func ("/parser/system",    test_parse_system);
   g_test_add_func ("/parser/planets",   test_parse_planets);
   g_test_add_func ("/parser/buildings", test_parse_buildings);
-  g_test_add_func ("/parser/science/1", test_parse_science);
+  g_test_add_func ("/parser/science/1", test_parse_science1);
   g_test_add_func ("/parser/science/2", test_parse_science2);
-  g_test_add_func ("/parser/fleet/1",   test_parse_fleet);
+  g_test_add_func ("/parser/fleet/1",   test_parse_fleet1);
   g_test_add_func ("/parser/fleet/2",   test_parse_fleet2);
   g_test_add_func ("/parser/fleet/3",   test_parse_fleet3);
+  g_test_add_func ("/parser/profile/1", test_parse_profile1);
+  g_test_add_func ("/parser/profile/2", test_parse_profile2);
+  g_test_add_func ("/parser/profile/3", test_parse_profile3);
 
   settings = aw_settings_new ();
   g_object_add_weak_pointer (G_OBJECT (settings), (gpointer) &settings);
