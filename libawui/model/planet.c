@@ -55,6 +55,7 @@ aw_planet_new (int            id,
   planet = g_slice_new (AwPlanet);
 
   planet->ref_count         = 1;
+  planet->id                = id;
   planet->flags             = flags;
   planet->name              = g_strdup (name);
   planet->owner             = g_strdup (owner);
