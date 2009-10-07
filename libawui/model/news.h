@@ -3,14 +3,30 @@
 
 #include <glib-object.h>
 
-#define AW_TYPE_NEWS (aw_news_get_type ())
+#define AW_TYPE_NEWS             (aw_news_get_type ())
+#define AW_NEWS(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), AW_TYPE_NEWS, AwNews))
+#define AW_NEWS_CLASS(cls)       (G_TYPE_CHECK_CLASS_CAST ((cls), AW_TYPE_NEWS, AwNewsClass))
+#define AW_IS_NEWS(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), AW_TYPE_NEWS))
+#define AW_IS_NEWS_CLASS(obj)    (G_TYPE_CHECK_CLASS_TYPE ((obj), AW_TYPE_NEWS))
+#define AW_NEWS_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), AW_TYPE_NEWS, AwMainViewClass))
 
 typedef enum {
   AW_NEWS_DEFAULT   =       0,
   AW_NEWS_IMPORTANT = (1 << 0),
 } AwNewsFlags;
 
-typedef struct _AwNews  AwNews;
+typedef struct _AwNews         AwNews;
+typedef struct _AwNewsPrivate  AwNewsPrivate;
+typedef struct _AwNewsClass    AwNewsClass;
+
+struct _AwNews {
+  GObject        parent;
+  AwNewsPrivate *priv;
+};
+
+struct _AwNewsClass {
+  GObjectClass parent_class;
+};
 
 GType
 aw_news_get_type  (void) G_GNUC_CONST;
@@ -36,12 +52,6 @@ aw_news_get_links (const AwNews *news);
 
 AwNewsFlags
 aw_news_get_flags (const AwNews *news);
-
-AwNews *
-aw_news_ref       (AwNews       *news);
-
-void
-aw_news_unref     (AwNews       *news);
 
 void
 aw_news_list_free (GList        *list);

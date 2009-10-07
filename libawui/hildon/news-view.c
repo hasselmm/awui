@@ -28,7 +28,7 @@ aw_news_view_row_tapped_cb (GtkTreeView *view,
 
   g_signal_emit (view, signals[NEWS_ACTIVATED], 0, news);
 
-  aw_news_unref (news);
+  g_object_unref (news);
 }
 
 static void
@@ -83,7 +83,7 @@ aw_news_view_text_cell_cb (GtkTreeViewColumn *column,
                 "markup", markup, "attributes", attributes,
                 "wrap-width", 680, NULL); // FIXME gtk_tree_view_column_get_width (column)
   pango_attr_list_unref (attributes);
-  aw_news_unref (news);
+  g_object_unref (news);
 }
 
 static void
@@ -124,7 +124,7 @@ aw_news_view_time_cell_cb (GtkTreeViewColumn *column,
   g_object_set (cell, "text", text->str, "attributes", attributes, NULL);
   pango_attr_list_unref (attributes);
   g_string_free (text, TRUE);
-  aw_news_unref (news);
+  g_object_unref (news);
 }
 
 static void

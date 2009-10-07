@@ -1,8 +1,7 @@
 #include "config.h"
 #include "news.h"
 
-struct _AwNews {
-  int           ref_count;
+struct _AwNewsPrivate {
   AwNewsFlags   flags;
   char         *date;
   char         *time;
@@ -10,27 +9,36 @@ struct _AwNews {
   char        **links;
 };
 
-static gpointer
-aw_news_copy (gpointer boxed)
+G_DEFINE_TYPE (AwNews, aw_news, G_TYPE_OBJECT);
+
+static void
+aw_news_init (AwNews *news)
 {
-  return aw_news_ref (boxed);
+  news->priv = G_TYPE_INSTANCE_GET_PRIVATE (news, AW_TYPE_NEWS, AwNewsPrivate);
 }
 
 static void
-aw_news_free (gpointer boxed)
+aw_news_finalize (GObject *object)
 {
-  aw_news_unref (boxed);
+  AwNews *news = AW_NEWS (object);
+
+  g_free     (news->priv->date);
+  g_free     (news->priv->time);
+  g_free     (news->priv->text);
+  g_strfreev (news->priv->links);
+
+  G_OBJECT_CLASS (aw_news_parent_class)->finalize (object);
 }
 
-GType
-aw_news_get_type  (void)
+static void
+aw_news_class_init (AwNewsClass *class)
 {
-  static GType type = 0;
+  GObjectClass *object_class;
 
-  if (G_UNLIKELY (!type))
-    type = g_boxed_type_register_static ("AwNews", aw_news_copy, aw_news_free);
+  object_class           = G_OBJECT_CLASS (class);
+  object_class->finalize = aw_news_finalize;
 
-  return type;
+  g_type_class_add_private (class, sizeof (AwNewsPrivate));
 }
 
 AwNews *
@@ -46,14 +54,13 @@ aw_news_new (const char   *date,
   g_return_val_if_fail (NULL != time, NULL);
   g_return_val_if_fail (NULL != text, NULL);
 
-  news = g_slice_new (AwNews);
+  news = g_object_new (AW_TYPE_NEWS, NULL);
 
-  news->ref_count = 1;
-  news->date      = g_strdup  (date);
-  news->time      = g_strdup  (time);
-  news->text      = g_strdup  (text);
-  news->links     = g_strdupv (links);
-  news->flags     = flags;
+  news->priv->date  = g_strdup  (date);
+  news->priv->time  = g_strdup  (time);
+  news->priv->text  = g_strdup  (text);
+  news->priv->links = g_strdupv (links);
+  news->priv->flags = flags;
 
   return news;
 }
@@ -61,59 +68,36 @@ aw_news_new (const char   *date,
 G_CONST_RETURN char *
 aw_news_get_date (const AwNews *news)
 {
-  g_return_val_if_fail (NULL != news, NULL);
-  return news->date;
+  g_return_val_if_fail (AW_IS_NEWS (news), NULL);
+  return news->priv->date;
 }
 
 G_CONST_RETURN char *
 aw_news_get_time (const AwNews *news)
 {
-  g_return_val_if_fail (NULL != news, NULL);
-  return news->time;
+  g_return_val_if_fail (AW_IS_NEWS (news), NULL);
+  return news->priv->time;
 }
 
 G_CONST_RETURN char *
 aw_news_get_text (const AwNews *news)
 {
-  g_return_val_if_fail (NULL != news, NULL);
-  return news->text;
+  g_return_val_if_fail (AW_IS_NEWS (news), NULL);
+  return news->priv->text;
 }
 
 char **
 aw_news_get_links (const AwNews *news)
 {
-  g_return_val_if_fail (NULL != news, NULL);
-  return (gpointer) news->links;
+  g_return_val_if_fail (AW_IS_NEWS (news), NULL);
+  return news->priv->links;
 }
 
 AwNewsFlags
 aw_news_get_flags (const AwNews *news)
 {
-  g_return_val_if_fail (NULL != news, 0);
-  return news->flags;
-}
-
-AwNews *
-aw_news_ref (AwNews *news)
-{
-  g_return_val_if_fail (NULL != news, NULL);
-  g_atomic_int_inc (&news->ref_count);
-  return news;
-}
-
-void
-aw_news_unref (AwNews *news)
-{
-  if (news && g_atomic_int_dec_and_test (&news->ref_count))
-    {
-      g_strfreev (news->links);
-
-      g_free (news->text);
-      g_free (news->time);
-      g_free (news->date);
-
-      g_slice_free (AwNews, news);
-    }
+  g_return_val_if_fail (AW_IS_NEWS (news), 0);
+  return news->priv->flags;
 }
 
 void
@@ -121,7 +105,7 @@ aw_news_list_free (GList *list)
 {
   while (list)
     {
-      aw_news_unref (list->data);
+      g_object_unref (list->data);
       list = g_list_delete_link (list, list);
     }
 }

@@ -39,7 +39,7 @@ G_STMT_START                                                                    
   else                                                                          \
     g_assert (NULL == links);                                                   \
                                                                                 \
-  aw_news_unref (item);                                                         \
+  g_object_unref (item);                                                        \
 }                                                                               \
 G_STMT_END
 
