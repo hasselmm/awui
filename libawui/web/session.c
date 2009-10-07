@@ -785,6 +785,8 @@ aw_session_select_science_async (AwSession          *session,
       field_value = "f_social";
       break;
     case AW_SCIENCE_CULTURE:
+    case AW_SCIENCE_WARFARE:
+    case AW_SCIENCE_OVERALL:
     case AW_SCIENCE_INVALID:
     case AW_SCIENCE_LAST:
       break;

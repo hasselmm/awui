@@ -665,7 +665,7 @@ aw_parser_read_sciences (const char      *data,
       g_strfreev (cells);
     }
 
-  if (l || AW_SCIENCE_LAST != id)
+  if (l || (AW_SCIENCE_CULTURE + 1) != id)
     rows = (aw_parser_list_free (rows, l, aw_science_unref), NULL);
 
   return rows;

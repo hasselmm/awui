@@ -2,6 +2,7 @@
 #include "science.h"
 
 #include <glib/gi18n-lib.h>
+#include <math.h>
 
 struct _AwScience {
   AwScienceId id;
@@ -137,6 +138,10 @@ aw_science_id_get_display_name (AwScienceId id)
       return _("Social");
     case AW_SCIENCE_CULTURE:
       return _("Culture");
+    case AW_SCIENCE_WARFARE:
+      return _("Player Level");
+    case AW_SCIENCE_OVERALL:
+      return _("Science Level");
     case AW_SCIENCE_INVALID:
     case AW_SCIENCE_LAST:
       break;
@@ -149,13 +154,13 @@ int
 aw_science_get_research_cost (AwScienceId id,
                               int         level)
 {
-  static const int science_cost[] = {
+  static const int science_levels[] = {
     29, 74, 138, 221, 325, 451, 603, 780, 986, 1223, 1492, 1796,
     2138, 2520, 2945, 3415, 3934, 4505, 5131, 5816, 6563, 7377,
     8261, 9221, 10260, 11382, 12595, 13901, 15400, 16715,
   };
 
-  static const int culture_cost[] = {
+  static const int culture_levels[] = {
     0, 318, 765, 1315, 2084, 2985, 4059, 5320, 6785, 8467,
     10382, 12547, 14979, 17697, 20721, 24071, 27768, 31835,
     36298, 41179, 46507, 52310, 58616, 65456, 72863,
@@ -165,14 +170,30 @@ aw_science_get_research_cost (AwScienceId id,
   g_return_val_if_fail (id < AW_SCIENCE_LAST, -1);
   g_return_val_if_fail (level >= 0,           -1);
 
-  if (id >= AW_SCIENCE_CULTURE)
+  switch (id)
     {
-      g_return_val_if_fail (level < G_N_ELEMENTS (culture_cost), -1);
-      return culture_cost[level];
+    case AW_SCIENCE_BIOLOGY:
+    case AW_SCIENCE_ECONOMY:
+    case AW_SCIENCE_ENERGY:
+    case AW_SCIENCE_MATHEMATICS:
+    case AW_SCIENCE_PHYSICS:
+    case AW_SCIENCE_SOCIAL:
+      g_return_val_if_fail (level < G_N_ELEMENTS (science_levels), -1);
+        return science_levels[level];
+
+    case AW_SCIENCE_CULTURE:
+      g_return_val_if_fail (level < G_N_ELEMENTS (culture_levels), -1);
+      return culture_levels[level];
+
+    case AW_SCIENCE_WARFARE:
+      return 5 * pow (level, 2.7) * 5 + 0.5;
+
+    case AW_SCIENCE_OVERALL:
+    case AW_SCIENCE_INVALID:
+    case AW_SCIENCE_LAST:
+      break;
     }
 
-  g_return_val_if_fail (level >= 0,                          -1);
-  g_return_val_if_fail (level < G_N_ELEMENTS (science_cost), -1);
-  return science_cost[level];
+  g_return_val_if_reached (-1);
 }
 

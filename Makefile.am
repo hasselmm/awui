@@ -1,5 +1,5 @@
 AM_CFLAGS  = -Wall -Werror -Wmissing-prototypes
-AM_LDFLAGS =
+AM_LDFLAGS = -lm
 
 noinst_LTLIBRARIES = libawui-model.la \
 		     libawui-web.la \
@@ -40,19 +40,23 @@ libawui_model_la_SOURCES = $(libawui_model_la_static_sources) \
 			   $(libaw_model_la_headers) \
 			   libawui/model/enums.c
 
-libawui_model_la_static_headers = libawui/model/fleet.h \
+libawui_model_la_static_headers = libawui/model/bonus.h \
+				  libawui/model/fleet.h \
 				  libawui/model/item.h \
 				  libawui/model/news.h \
 				  libawui/model/planet.h \
 				  libawui/model/point.h \
+				  libawui/model/profile.h \
 				  libawui/model/settings.h \
 				  libawui/model/science.h \
 				  libawui/model/star.h
-libawui_model_la_static_sources = libawui/model/fleet.c \
+libawui_model_la_static_sources = libawui/model/bonus.c \
+				  libawui/model/fleet.c \
 				  libawui/model/item.c \
 				  libawui/model/news.c \
 				  libawui/model/planet.c \
 				  libawui/model/point.c \
+				  libawui/model/profile.c \
 				  libawui/model/settings.c \
 				  libawui/model/science.c \
 				  libawui/model/star.c
