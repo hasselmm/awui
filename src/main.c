@@ -10,6 +10,8 @@ typedef GList * (* AwFetchItemsFinishFunc) (AwSession     *session,
 typedef void    (* AwProcessItemsFunc)     (AwTreeView *view,
                                             GList      *list);
 
+static GtkWidget *main_view = NULL;
+
 static GtkWidget *
 show_view (const char *title,
            GtkWidget  *view,
@@ -86,8 +88,12 @@ fetch_news_cb (GObject      *source,
   if (news)
     {
       model = gtk_tree_view_get_model (view);
+
       n = gtk_tree_model_iter_n_children (model, NULL);
-      n = (n + 4) / 5 + 1;
+      n = (n + 4) / 5;
+
+      if (0 == n)
+        aw_main_view_set_latest_news (AW_MAIN_VIEW (main_view), news->data);
 
       aw_session_fetch_news_async (AW_SESSION (source),
                                    n, fetch_news_cb, view);
@@ -555,7 +561,7 @@ int
 main (int    argc,
       char **argv)
 {
-  GtkWidget  *window, *main_view;
+  GtkWidget  *window;
   AwSettings *settings;
   AwSession  *session;
   AwProfile  *profile;

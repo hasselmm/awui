@@ -5,6 +5,12 @@
 #include <libawui/model.h>
 #include <hildon/hildon.h>
 #include <glib/gi18n-lib.h>
+#include <math.h>
+
+typedef enum {
+  PROP_LATEST_NEWS = 1,
+  PROP_PROFILE,
+} AwMainViewPropId;
 
 enum {
   ACTION_STARTED,
@@ -66,26 +72,40 @@ aw_main_view_create_button (AwMainView       *view,
 static void
 aw_main_view_refresh (AwMainView *view)
 {
+  AwProfile *profile;
   GtkWidget *button;
-  char      *alliance_tag = NULL;
-  int        player_level = 0;
+  char      *text;
 
-  g_object_get (aw_settings_get_singleton (),
-                "alliance-tag", &alliance_tag,
-                "player-level", &player_level, NULL);
+  profile = aw_profile_get_self ();
+
+  button = view->priv->buttons[AW_MAIN_VIEW_ACTION_NEWS];
+
+  // FIXME: do something about news markup
+  hildon_button_set_value (HILDON_BUTTON (button),
+                           view->priv->latest_news ?
+                           aw_news_get_text (view->priv->latest_news) :
+                           NULL);
 
   button = view->priv->buttons[AW_MAIN_VIEW_ACTION_TRADE];
 
-  if (player_level < 1)
+  if (aw_profile_get_level (profile, AW_SCIENCE_WARFARE) < 1)
     {
       hildon_button_set_value (HILDON_BUTTON (button),
                                _("Player level 1 required"));
       gtk_widget_set_sensitive (button, FALSE);
     }
+  else
+    {
+      text = g_strdup_printf (_("Trade Revenue: %+.f %%"),
+                              aw_profile_get_bonus (profile, AW_BONUS_TRADE) * 100 - 100);
+      hildon_button_set_value (HILDON_BUTTON (button), text);
+      gtk_widget_set_sensitive (button, TRUE);
+      g_free (text);
+    }
 
   button = view->priv->buttons[AW_MAIN_VIEW_ACTION_ALLIANCE];
 
-  if (player_level < 5)
+  if (aw_profile_get_level (profile, AW_SCIENCE_WARFARE) < 5)
     {
       hildon_button_set_value (HILDON_BUTTON (button),
                                _("Player level 5 required"));
@@ -94,20 +114,45 @@ aw_main_view_refresh (AwMainView *view)
   else
     {
       hildon_button_set_value (HILDON_BUTTON (button),
-                               alliance_tag ? alliance_tag : _("none"));
+                               aw_profile_get_alliance_tag (profile) ?
+                               aw_profile_get_alliance_tag (profile) :
+                               _("none"));
       gtk_widget_set_sensitive (button, TRUE);
     }
 
+  button = view->priv->buttons[AW_MAIN_VIEW_ACTION_MAP];
+
+  text = g_strdup_printf (_("Origin: (%+d/%+d)"),
+                          aw_profile_get_origin (profile)->x,
+                          aw_profile_get_origin (profile)->y);
+  hildon_button_set_value (HILDON_BUTTON (button), text);
+  g_free (text);
+
+  button = view->priv->buttons[AW_MAIN_VIEW_ACTION_SCIENCE];
+
+  text = g_strdup_printf (_("Science Level: %.f, Culture Level: %.f"),
+                          floor (aw_profile_get_level (profile, AW_SCIENCE_OVERALL)),
+                          floor (aw_profile_get_level (profile, AW_SCIENCE_CULTURE)));
+  hildon_button_set_value (HILDON_BUTTON (button), text);
+  g_free (text);
+
+  button = view->priv->buttons[AW_MAIN_VIEW_ACTION_FLEET];
+
+  text = g_strdup_printf (_("Player Level: %.f"),
+                          floor (aw_profile_get_level (profile, AW_SCIENCE_WARFARE)));
+  hildon_button_set_value (HILDON_BUTTON (button), text);
+  g_free (text);
+
   /* FIXME: retreive this information */
 #if 0
-  hildon_button_set_value (HILDON_BUTTON (view->news_button), "TODO: warning: 2 failed logins");
   hildon_button_set_value (HILDON_BUTTON (view->map_button), "TODO: 7 stars within 5 pc");
   hildon_button_set_value (HILDON_BUTTON (view->planets_button), "TODO: 5 planets, 15 mrd people, 123 PP/h");
   hildon_button_set_value (HILDON_BUTTON (view->fleet_button), "TODO: 3 fleets, 1000 CV");
   hildon_button_set_value (HILDON_BUTTON (view->science_button), "TODO: Energy: 5:32h, Culture: 7:43h");
+  hildon_button_set_value (HILDON_BUTTON (view->trade_button), "TODO: 1234 A$, Trade Revenue: 13%");
 #endif
 
-  g_free (alliance_tag);
+  g_object_unref (profile);
 }
 
 static void
@@ -137,11 +182,12 @@ aw_main_view_init (AwMainView *view)
 
   gtk_widget_show_all (view->priv->table);
 
+/* FIXME
   g_signal_connect_swapped (aw_settings_get_singleton (), "notify::alliance-tag",
                             G_CALLBACK (aw_main_view_refresh), view);
   g_signal_connect_swapped (aw_settings_get_singleton (), "notify::player-level",
                             G_CALLBACK (aw_main_view_refresh), view);
-
+ */
   aw_main_view_refresh (view);
 }
 
@@ -159,12 +205,80 @@ aw_main_view_finalize (GObject *object)
 }
 
 static void
+aw_main_view_set_property (GObject      *object,
+                           unsigned      prop_id,
+                           const GValue *value,
+                           GParamSpec   *pspec)
+{
+  AwMainView *view = AW_MAIN_VIEW (object);
+
+  switch ((AwMainViewPropId) prop_id) {
+  case PROP_LATEST_NEWS:
+    if (view->priv->latest_news)
+      g_object_unref (view->priv->latest_news);
+
+    view->priv->latest_news = g_value_dup_object (value);
+    aw_main_view_refresh (view);
+    return;
+  case PROP_PROFILE:
+    if (view->priv->profile)
+      g_object_unref (view->priv->profile);
+
+    view->priv->profile = g_value_dup_object (value);
+    aw_main_view_refresh (view);
+    return;
+  }
+
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+aw_main_view_get_property (GObject    *object,
+                           unsigned    prop_id,
+                           GValue     *value,
+                           GParamSpec *pspec)
+{
+  AwMainView *view = AW_MAIN_VIEW (object);
+
+  switch ((AwMainViewPropId) prop_id) {
+  case PROP_LATEST_NEWS:
+    g_value_set_object (value, view->priv->latest_news);
+    return;
+  case PROP_PROFILE:
+    g_value_set_object (value, view->priv->profile);
+    return;
+  }
+
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
 aw_main_view_class_init (AwMainViewClass *class)
 {
   GObjectClass *object_class;
 
-  object_class           = G_OBJECT_CLASS (class);
-  object_class->finalize = aw_main_view_finalize;
+  object_class               = G_OBJECT_CLASS (class);
+  object_class->finalize     = aw_main_view_finalize;
+  object_class->set_property = aw_main_view_set_property;
+  object_class->get_property = aw_main_view_get_property;
+
+  g_object_class_install_property
+    (object_class, PROP_LATEST_NEWS,
+     g_param_spec_object ("latest-news",
+                          "Latest News",
+                          "Latest news for the player",
+                          AW_TYPE_NEWS,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property
+    (object_class, PROP_PROFILE,
+     g_param_spec_object ("profile",
+                          "Profile",
+                          "The player's profile",
+                          AW_TYPE_PROFILE,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_STRINGS));
 
   signals[ACTION_STARTED] = g_signal_new ("action-started",
                                           AW_TYPE_MAIN_VIEW,
